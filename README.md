@@ -8,7 +8,8 @@
 
 | 파일 | 내용 |
 |---|---|
-| [`docs/v2-design.md`](docs/v2-design.md) | **현재 기준 설계 (v2, 2026-10-14).** 반복해서 볼 문서입니다 |
+| [`docs/v2-design.md`](docs/v2-design.md) | 현재 설계 (v2, 2026-10-14). v2 검토에서 나온 P0 항목을 고치기 전까지는 그대로 믿고 쓰지 않습니다 |
+| [`docs/review-v2-2026-10-14.md`](docs/review-v2-2026-10-14.md) | v2 검토 보고서. 다섯 관점의 비판, 사이징 규칙 백테스트, 개선 우선순위(P0~P2) |
 | [`docs/review-2026-10-14.md`](docs/review-2026-10-14.md) | v1 검토 보고서. 무엇이 왜 바뀌었는지와 데이터 근거 |
 | [`docs/v1-design.md`](docs/v1-design.md) | 최초 설계 (v1, 2026-08-19). 비교용으로 보존 |
 
@@ -21,3 +22,5 @@ pip install pandas numpy scipy xlrd requests
 python analysis/verify_v1.py            # 데이터를 analysis/.cache/에 내려받고 계산
 python analysis/verify_v1.py --offline  # 내려받은 데이터로 다시 계산
 ```
+
+`analysis/critique-v2/`에는 v2 검토에 쓴 백테스트·경보 검증 스크립트와 결과 원자료가 있습니다.
