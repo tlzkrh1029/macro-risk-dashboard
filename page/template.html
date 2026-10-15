@@ -1,0 +1,451 @@
+<title>미국 금리 매크로 리스크</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: a weekly rates-desk readout. Verdict band first, then two panels
+   (what is moving / is it spreading), a 12-week verdict strip, memo, sources. */
+:root {
+  --bg: #f3f5f7;
+  --surface: #fbfcfd;
+  --ink: #141b24;
+  --ink-2: #485361;
+  --muted: #727d8a;
+  --line: #dde2e8;
+  --track: #e8ecf0;
+  --accent: #1d5f7a;
+  --accent-wash: rgba(29, 95, 122, 0.10);
+  --bar-quiet: #aeb8c3;
+  --spark: #8c97a3;
+  --ring: rgba(20, 27, 36, 0.10);
+  --good: #0ca30c;
+  --warn: #fab219;
+  --crit: #d03b3b;
+  --on-good: #ffffff;
+  --on-warn: #1a1a19;
+  --on-crit: #ffffff;
+  --font-body: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1319;
+    --surface: #151c24;
+    --ink: #e7ecf1;
+    --ink-2: #b3bdc8;
+    --muted: #8893a0;
+    --line: #26303b;
+    --track: #1e2731;
+    --accent: #62b2d1;
+    --accent-wash: rgba(98, 178, 209, 0.14);
+    --bar-quiet: #4f5b69;
+    --spark: #6f7b88;
+    --ring: rgba(255, 255, 255, 0.10);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1319;
+  --surface: #151c24;
+  --ink: #e7ecf1;
+  --ink-2: #b3bdc8;
+  --muted: #8893a0;
+  --line: #26303b;
+  --track: #1e2731;
+  --accent: #62b2d1;
+  --accent-wash: rgba(98, 178, 209, 0.14);
+  --bar-quiet: #4f5b69;
+  --spark: #6f7b88;
+  --ring: rgba(255, 255, 255, 0.10);
+  color-scheme: dark;
+}
+
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.55; }
+.wrap {
+  max-width: 1080px; margin: 0 auto;
+  padding-block: 28px 44px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 22px;
+}
+.mono { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted); }
+h1, h2 { margin: 0; text-wrap: balance; }
+
+/* Header */
+header { display: grid; gap: 6px; }
+.eyebrow { font-size: 12.5px; letter-spacing: 0.04em; color: var(--muted); }
+h1 { font-size: clamp(24px, 4vw, 32px); font-weight: 700; letter-spacing: -0.01em; }
+.question { margin: 0; color: var(--ink-2); max-width: 62ch; }
+
+/* Verdict band */
+.verdict {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+  padding: 20px 22px; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 18px 28px; align-items: center;
+}
+.state { display: grid; gap: 6px; justify-items: start; }
+.pill {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-size: 30px; font-weight: 700; line-height: 1;
+}
+.pill .sw { width: 18px; height: 18px; border-radius: 4px; flex: none; }
+.state .count { font-size: 13px; color: var(--ink-2); }
+.why { display: grid; gap: 10px; min-width: 0; }
+.why .cause { font-size: 17px; font-weight: 600; }
+.why .cause .mono { font-weight: 500; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 7px; font-size: 13px;
+  padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); color: var(--ink-2);
+}
+.chip .dot { width: 9px; height: 9px; border-radius: 2px; background: var(--track); box-shadow: inset 0 0 0 1px var(--bar-quiet); }
+.chip.over { color: var(--ink); border-color: var(--warn); }
+.chip.over .dot { background: var(--warn); box-shadow: none; }
+
+/* Panels */
+.panels { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px 8px; min-width: 0; }
+.panel-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+.panel-head h2 { font-size: 16px; font-weight: 600; }
+.panel-head p { margin: 0; font-size: 12.5px; color: var(--muted); }
+.rows { display: grid; }
+.row {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto 104px; grid-template-areas: "name value spark" "bar bar bar";
+  gap: 6px 14px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--line);
+}
+.row:last-child { border-bottom: 0; }
+.name { grid-area: name; min-width: 0; display: grid; gap: 1px; }
+.name .label { font-weight: 600; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.name .what { font-size: 12.5px; color: var(--muted); }
+.tag { font-size: 11.5px; font-weight: 600; letter-spacing: 0.02em; color: var(--accent); background: var(--accent-wash); padding: 1px 7px; border-radius: 4px; }
+.value { grid-area: value; font-family: var(--font-data); font-size: 19px; font-weight: 500; text-align: right; }
+.value small { font-size: 12px; color: var(--muted); margin-left: 1px; }
+.spark { grid-area: spark; width: 104px; height: 34px; display: block; cursor: crosshair; }
+.spark:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+.barline { grid-area: bar; display: grid; grid-template-columns: 74px minmax(0, 1fr) auto; gap: 10px; align-items: center; }
+.chg { font-family: var(--font-data); font-variant-numeric: tabular-nums; font-size: 13.5px; font-weight: 500; }
+.track { position: relative; height: 10px; background: var(--track); border-radius: 3px; }
+.track .zero { position: absolute; top: -3px; bottom: -3px; width: 1px; background: var(--bar-quiet); }
+.track .fill { position: absolute; top: 0; bottom: 0; background: var(--bar-quiet); }
+.track .fill.pos { border-radius: 0 3px 3px 0; }
+.track .fill.neg { border-radius: 3px 0 0 3px; }
+.track .fill.lead { background: var(--accent); }
+.track .fill.over { background: var(--warn); }
+.track .tick { position: absolute; top: -4px; bottom: -4px; width: 2px; background: var(--ink-2); border-radius: 1px; }
+.status { font-size: 12px; color: var(--muted); white-space: nowrap; }
+.status.over { color: var(--ink); font-weight: 600; }
+
+/* History strip */
+.history { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; display: grid; gap: 12px; }
+.history .panel-head { border-bottom: 0; padding-bottom: 0; }
+.strip { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 4px; }
+.cell { display: grid; gap: 5px; justify-items: center; cursor: default; border-radius: 6px; padding: 2px 0 0; }
+.cell:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.cell .blk {
+  width: 100%; height: 34px; border-radius: 4px; display: grid; place-items: center;
+  font-family: var(--font-data); font-size: 13px; font-weight: 500;
+}
+.cell.now .blk { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--ink); }
+.cell .d { font-family: var(--font-data); font-size: 11px; color: var(--muted); }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12.5px; color: var(--ink-2); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+
+/* Memo + footer */
+.memo { display: grid; gap: 4px; padding: 0 2px; }
+.memo h2 { font-size: 13px; font-weight: 600; color: var(--muted); letter-spacing: 0.04em; }
+.memo p { margin: 0; max-width: 70ch; }
+details { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 18px; }
+summary { cursor: pointer; font-weight: 600; font-size: 14px; }
+summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 3px; }
+.table-wrap { overflow-x: auto; margin-top: 12px; }
+table { border-collapse: collapse; font-size: 12.5px; width: 100%; min-width: 640px; }
+th, td { padding: 6px 8px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { font-weight: 600; color: var(--ink-2); }
+th:first-child, td:first-child { text-align: left; }
+td { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
+footer { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 28px; font-size: 12.5px; color: var(--muted); padding: 0 2px; }
+footer h3 { margin: 0 0 4px; font-size: 12.5px; font-weight: 600; color: var(--ink-2); }
+footer p { margin: 0; }
+footer .full { grid-column: 1 / -1; }
+
+/* Tooltip */
+.tip {
+  position: fixed; z-index: 10; pointer-events: none; background: var(--surface); color: var(--ink);
+  border: 1px solid var(--line); box-shadow: 0 4px 16px var(--ring); border-radius: 6px;
+  padding: 7px 10px; font-size: 12.5px; display: grid; gap: 2px; max-width: 240px;
+}
+.tip b { font-family: var(--font-data); font-weight: 500; font-size: 14px; }
+
+@media (max-width: 820px) {
+  .panels { grid-template-columns: minmax(0, 1fr); }
+  footer { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 520px) {
+  .verdict { grid-template-columns: minmax(0, 1fr); padding: 18px; }
+  .row { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name value" "name spark" "bar bar"; }
+  .spark { width: 84px; height: 27px; justify-self: end; }
+  .barline { grid-template-columns: 66px minmax(0, 1fr) auto; }
+  .strip { grid-template-columns: repeat(6, minmax(0, 1fr)); row-gap: 10px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow" id="eyebrow"></div>
+    <h1>미국 금리 매크로 리스크</h1>
+    <p class="question">미국 금리가 왜 움직이고, 그 충격이 위험자산으로 번지고 있는가?</p>
+  </header>
+
+  <section class="verdict" aria-label="이번 주 판정">
+    <div class="state">
+      <div class="pill"><span class="sw" id="state-sw"></span><span id="state-label"></span></div>
+      <div class="count" id="state-count"></div>
+    </div>
+    <div class="why">
+      <div class="cause" id="cause"></div>
+      <div class="chips" id="chips"></div>
+    </div>
+  </section>
+
+  <div class="panels">
+    <section class="panel" aria-labelledby="h-rates">
+      <div class="panel-head">
+        <h2 id="h-rates">금리: 무엇이 움직이나</h2>
+        <p>4주 변화(bp). 가장 크게 움직인 두 지표가 원인입니다</p>
+      </div>
+      <div class="rows" id="rates"></div>
+    </section>
+    <section class="panel" aria-labelledby="h-spread">
+      <div class="panel-head">
+        <h2 id="h-spread">전이: 번지고 있나</h2>
+        <p>4주 변화(%). 세로 눈금이 경계 기준입니다</p>
+      </div>
+      <div class="rows" id="spread"></div>
+    </section>
+  </div>
+
+  <section class="history" aria-labelledby="h-hist">
+    <div class="panel-head">
+      <h2 id="h-hist">최근 12주 판정</h2>
+      <p>같은 규칙으로 매주 금요일 종가를 다시 계산했습니다. 숫자는 기준을 넘은 지표 수입니다</p>
+    </div>
+    <div class="strip" id="strip"></div>
+    <div class="legend">
+      <span><i style="background: var(--good)"></i>안정 (0개)</span>
+      <span><i style="background: var(--warn)"></i>경계 (1~2개)</span>
+      <span><i style="background: var(--crit)"></i>스트레스 (3~4개)</span>
+    </div>
+  </section>
+
+  <section class="memo" aria-labelledby="h-memo" id="memo-sec">
+    <h2 id="h-memo">메모</h2>
+    <p id="memo"></p>
+  </section>
+
+  <details>
+    <summary>데이터 표 보기 (최근 13주, 금요일 종가)</summary>
+    <div class="table-wrap"><table id="table"></table></div>
+  </details>
+
+  <footer>
+    <div>
+      <h3>판정 규칙</h3>
+      <p>매주 금요일 미국 종가를 4주 전 금요일과 비교합니다. 경계 기준은 MOVE +20%, HY OAS +15%, VIX +30%, DXY +3%입니다. 기준을 넘은 지표가 0개면 안정, 1~2개면 경계, 3~4개면 스트레스입니다.</p>
+    </div>
+    <div>
+      <h3>데이터</h3>
+      <p>FRED (DGS2, DFII10, T10YIE, BAMLH0A0HYM2), 뉴욕 연은 ACM 기간프리미엄 (ACMTP10), Yahoo Finance (^MOVE, ^VIX, DX-Y.NYB). 금요일이 휴장이면 그 주의 마지막 거래일 값을 씁니다.</p>
+    </div>
+    <p class="full" id="notes"></p>
+    <p class="full">지표 해석 프레임에 관한 정리이며 투자 자문이 아닙니다.</p>
+  </footer>
+</div>
+<div class="tip" id="tip" hidden></div>
+
+<script>
+const DATA = /*__DATA__*/null;
+
+const STATUS = { "안정": "var(--good)", "경계": "var(--warn)", "스트레스": "var(--crit)" };
+const ON_STATUS = { "안정": "var(--on-good)", "경계": "var(--on-warn)", "스트레스": "var(--on-crit)" };
+const WEEKDAY = ["일", "월", "화", "수", "목", "금", "토"];
+
+function el(tag, cls, text) {
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text != null) n.textContent = text;
+  return n;
+}
+const svgEl = (tag, attrs) => {
+  const n = document.createElementNS("http://www.w3.org/2000/svg", tag);
+  for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
+  return n;
+};
+const fmtRate = v => v.toFixed(2);
+const fmtBp = v => (v >= 0 ? "+" : "−") + Math.abs(Math.round(v)) + "bp";
+const fmtPct = v => (v >= 0 ? "+" : "−") + Math.abs(v).toFixed(1) + "%";
+function fmtLevel(r, v) { return r.unit === "bp" ? Math.round(v) + "bp" : v.toFixed(1); }
+const shortDate = d => d.slice(5).replace("-", ".");
+
+/* Tooltip */
+const tip = document.getElementById("tip");
+function showTip(x, y, lines) {
+  tip.replaceChildren(...lines.map(([text, strong]) => el(strong ? "b" : "span", null, text)));
+  tip.hidden = false;
+  const r = tip.getBoundingClientRect();
+  const left = Math.min(Math.max(8, x + 12), window.innerWidth - r.width - 8);
+  const top = y - r.height - 12 < 8 ? y + 16 : y - r.height - 12;
+  tip.style.left = left + "px";
+  tip.style.top = top + "px";
+}
+const hideTip = () => { tip.hidden = true; };
+
+/* Sparkline: 13 weekly closes, quiet line + area, endpoint in accent */
+function sparkline(points, fmt, label) {
+  const W = 104, H = 34, P = 4;
+  const vs = points.map(p => p.v);
+  const lo = Math.min(...vs), hi = Math.max(...vs), span = hi - lo || 1;
+  const x = i => P + (i * (W - 2 * P)) / (points.length - 1);
+  const y = v => H - P - ((v - lo) / span) * (H - 2 * P);
+  const svg = svgEl("svg", { viewBox: `0 0 ${W} ${H}`, class: "spark", preserveAspectRatio: "none", tabindex: "0", role: "img",
+    "aria-label": `${label} 최근 13주: ${points[0].d} ${fmt(points[0].v)}에서 ${points.at(-1).d} ${fmt(points.at(-1).v)}` });
+  const line = points.map((p, i) => `${x(i).toFixed(1)},${y(p.v).toFixed(1)}`).join(" ");
+  svg.append(svgEl("polygon", { points: `${x(0)},${H - P} ${line} ${x(points.length - 1)},${H - P}`, fill: "var(--spark)", "fill-opacity": "0.12" }));
+  svg.append(svgEl("polyline", { points: line, fill: "none", stroke: "var(--spark)", "stroke-width": "1.75", "stroke-linejoin": "round", "stroke-linecap": "round", "vector-effect": "non-scaling-stroke" }));
+  const hover = svgEl("line", { x1: 0, x2: 0, y1: P - 2, y2: H - P + 2, stroke: "var(--ink-2)", "stroke-width": "1", "vector-effect": "non-scaling-stroke", visibility: "hidden" });
+  svg.append(hover);
+  const last = points.length - 1;
+  svg.append(svgEl("circle", { cx: x(last), cy: y(points[last].v), r: 3.5, fill: "var(--accent)", stroke: "var(--surface)", "stroke-width": "2", "vector-effect": "non-scaling-stroke" }));
+  const pick = (clientX) => {
+    const b = svg.getBoundingClientRect();
+    const rel = ((clientX - b.left) / b.width) * W;
+    return Math.max(0, Math.min(last, Math.round(((rel - P) / (W - 2 * P)) * last)));
+  };
+  const show = (i, cx, cy) => {
+    hover.setAttribute("x1", x(i)); hover.setAttribute("x2", x(i)); hover.setAttribute("visibility", "visible");
+    showTip(cx, cy, [[fmt(points[i].v), true], [`${label} · ${points[i].d}`]]);
+  };
+  svg.addEventListener("pointermove", e => show(pick(e.clientX), e.clientX, e.clientY));
+  svg.addEventListener("pointerleave", () => { hover.setAttribute("visibility", "hidden"); hideTip(); });
+  svg.addEventListener("focus", () => { const b = svg.getBoundingClientRect(); show(last, b.right, b.top); });
+  svg.addEventListener("blur", () => { hover.setAttribute("visibility", "hidden"); hideTip(); });
+  return svg;
+}
+
+function render(d) {
+  const f = new Date(d.friday + "T00:00:00");
+  document.getElementById("eyebrow").textContent =
+    `주간 판독 · ${d.friday} (${WEEKDAY[f.getDay()]}) 미국 종가 기준 · 4주 전 ${d.prior} 대비`;
+
+  /* Verdict band */
+  document.getElementById("state-sw").style.background = STATUS[d.verdict];
+  document.getElementById("state-label").textContent = d.verdict;
+  document.getElementById("state-count").textContent = `기준을 넘은 전이 지표 ${d.hits}/4`;
+  const top = [...d.rates].sort((a, b) => a.rank - b.rank).slice(0, 2);
+  const cause = document.getElementById("cause");
+  cause.append("원인: ");
+  top.forEach((r, i) => {
+    if (i) cause.append(" · ");
+    cause.append(r.label + " ");
+    cause.append(el("span", "mono", fmtBp(r.change_bp)));
+  });
+  const chips = document.getElementById("chips");
+  d.spread.forEach(r => {
+    const c = el("span", "chip" + (r.over ? " over" : ""));
+    c.append(el("span", "dot"), document.createTextNode(`${r.label} ${r.over ? "기준 초과" : "기준 미만"}`));
+    chips.append(c);
+  });
+
+  /* Rates panel: diverging bars on one shared bp scale */
+  const maxBp = Math.max(20, Math.ceil(Math.max(...d.rates.map(r => Math.abs(r.change_bp))) / 10) * 10);
+  const rates = document.getElementById("rates");
+  d.rates.forEach(r => {
+    const row = el("div", "row");
+    const name = el("div", "name");
+    const lab = el("div", "label", r.label);
+    if (r.rank <= 2) lab.append(el("span", "tag", `원인 ${r.rank}위`));
+    name.append(lab, el("div", "what", r.what));
+    const val = el("div", "value", fmtRate(r.value));
+    val.append(el("small", null, "%"));
+    const bar = el("div", "barline");
+    bar.append(el("span", "chg", fmtBp(r.change_bp)));
+    const track = el("div", "track");
+    track.setAttribute("role", "img");
+    track.setAttribute("aria-label", `${r.label} 4주 변화 ${fmtBp(r.change_bp)}, 눈금 ±${maxBp}bp`);
+    const zero = el("span", "zero"); zero.style.left = "50%";
+    const w = (Math.abs(r.change_bp) / maxBp) * 50;
+    const fill = el("span", "fill " + (r.change_bp >= 0 ? "pos" : "neg") + (r.rank <= 2 ? " lead" : ""));
+    fill.style.width = w + "%";
+    fill.style.left = r.change_bp >= 0 ? "50%" : (50 - w) + "%";
+    track.append(fill, zero);
+    bar.append(track, el("span", "status mono", `±${maxBp}bp`));
+    row.append(name, val, sparkline(d.spark[r.key], v => fmtRate(v) + "%", r.label), bar);
+    rates.append(row);
+  });
+
+  /* Spread panel: progress toward the threshold, track runs to 150% of it */
+  const spread = document.getElementById("spread");
+  d.spread.forEach(r => {
+    const row = el("div", "row");
+    const name = el("div", "name");
+    name.append(el("div", "label", r.label), el("div", "what", r.what));
+    const val = el("div", "value", fmtLevel(r, r.value));
+    const bar = el("div", "barline");
+    bar.append(el("span", "chg", fmtPct(r.change_pct)));
+    const track = el("div", "track");
+    track.setAttribute("role", "img");
+    track.setAttribute("aria-label", `${r.label} 4주 변화 ${fmtPct(r.change_pct)}, 경계 기준 +${r.threshold}%`);
+    const ratio = Math.max(0, Math.min(1.5, r.change_pct / r.threshold));
+    const fill = el("span", "fill pos" + (r.over ? " over" : ""));
+    fill.style.left = "0"; fill.style.width = (ratio / 1.5) * 100 + "%";
+    const tick = el("span", "tick"); tick.style.left = `calc(${(1 / 1.5) * 100}% - 1px)`;
+    track.append(fill, tick);
+    bar.append(track, el("span", "status" + (r.over ? " over" : ""), r.over ? "기준 초과" : `기준 +${r.threshold}%`));
+    row.append(name, val, sparkline(d.spark[r.key], v => fmtLevel(r, v), r.label), bar);
+    spread.append(row);
+  });
+
+  /* 12-week verdict strip */
+  const strip = document.getElementById("strip");
+  d.history.forEach((h, i) => {
+    const cell = el("div", "cell" + (i === d.history.length - 1 ? " now" : ""));
+    cell.tabIndex = 0;
+    const desc = `${h.d}: ${h.verdict} (${h.hits}/4)` + (h.over.length ? `, 기준 초과 ${h.over.join(", ")}` : "") + `, 원인 ${h.cause.join("·")}`;
+    cell.setAttribute("aria-label", desc);
+    const blk = el("div", "blk", String(h.hits));
+    blk.style.background = STATUS[h.verdict];
+    blk.style.color = ON_STATUS[h.verdict];
+    cell.append(blk, el("div", "d", shortDate(h.d)));
+    const lines = [[`${h.verdict} · ${h.hits}/4`, true], [h.d],
+      [h.over.length ? `기준 초과: ${h.over.join(", ")}` : "기준 초과 없음"], [`원인: ${h.cause.join(", ")}`]];
+    cell.addEventListener("pointermove", e => showTip(e.clientX, e.clientY, lines));
+    cell.addEventListener("pointerleave", hideTip);
+    cell.addEventListener("focus", () => { const b = cell.getBoundingClientRect(); showTip(b.left + b.width / 2, b.top, lines); });
+    cell.addEventListener("blur", hideTip);
+    strip.append(cell);
+  });
+
+  /* Memo, notes, table */
+  if (d.memo) document.getElementById("memo").textContent = d.memo;
+  else document.getElementById("memo-sec").hidden = true;
+  document.getElementById("notes").textContent = d.notes.length ? "데이터 메모: " + d.notes.join("; ") : "";
+  const all = [...d.rates.map(r => ({ ...r, fmt: v => fmtRate(v) + "%" })), ...d.spread.map(r => ({ ...r, fmt: v => fmtLevel(r, v) }))];
+  const table = document.getElementById("table");
+  const head = el("tr");
+  head.append(el("th", null, "금요일"), ...all.map(r => el("th", null, r.label)));
+  const thead = el("thead"); thead.append(head);
+  const tbody = el("tbody");
+  d.spark[all[0].key].map(p => p.d).reverse().forEach((date, k) => {
+    const tr = el("tr");
+    tr.append(el("td", null, date));
+    all.forEach(r => { const pts = d.spark[r.key]; tr.append(el("td", null, r.fmt(pts[pts.length - 1 - k].v))); });
+    tbody.append(tr);
+  });
+  table.append(thead, tbody);
+}
+
+if (DATA) render(DATA);
+window.addEventListener("scroll", hideTip, { passive: true });
+</script>
