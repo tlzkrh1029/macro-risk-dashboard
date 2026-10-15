@@ -160,7 +160,7 @@ h1 { font-size: clamp(24px, 4vw, 32px); font-weight: 700; letter-spacing: -0.01e
 .memo { display: grid; gap: 4px; padding: 0 2px; }
 .memo h2 { font-size: 13px; font-weight: 600; color: var(--muted); letter-spacing: 0.04em; }
 .memo p { margin: 0; max-width: 70ch; }
-details { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 18px; }
+details { min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 18px; }
 summary { cursor: pointer; font-weight: 600; font-size: 14px; }
 summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 3px; }
 .table-wrap { overflow-x: auto; margin-top: 12px; }
@@ -231,7 +231,7 @@ footer .full { grid-column: 1 / -1; }
     <section class="panel" aria-labelledby="h-rates">
       <div class="panel-head">
         <h2 id="h-rates">금리: 무엇이 움직이나</h2>
-        <p>4주 변화(bp). 맨 위 10년물은 합계이고, 아래 네 지표 중 가장 크게 움직인 두 개가 원인입니다</p>
+        <p>4주 변화(bp). 가장 크게 움직인 두 지표가 원인입니다</p>
       </div>
       <div class="rows" id="rates"></div>
     </section>
@@ -273,9 +273,8 @@ footer .full { grid-column: 1 / -1; }
     <div class="guide-cols">
       <div>
         <h3>금리: 10년 금리를 원인별로 나눈 조각</h3>
-        <p class="sub">10년 금리는 '실질금리 + 기대 인플레이션', 또는 '정책금리 기대 + 기간프리미엄'으로 나뉩니다. 10년 금리 자체는 합계라서 원인을 말해 주지 못하므로, 맨 위에 참고로 보여 주고 원인은 조각에서 찾습니다.</p>
+        <p class="sub">10년 금리는 '실질금리 + 기대 인플레이션', 또는 '정책금리 기대 + 기간프리미엄'으로 나뉩니다. 10년 금리 자체는 합계라서 원인을 말해 주지 못하므로, 원인은 아래 네 지표에서 찾습니다. 패널 맨 위의 10년물(합계)은 뉴스에 나오는 10년 국채금리이며, 10년 실질금리와 10년 BE를 더한 값과 같습니다. 원인 순위에는 넣지 않고, 10년 금리가 전체로 얼마나 움직였는지와 실질금리와 BE가 서로 반대로 움직여 상쇄되었는지를 확인하는 참고용으로만 씁니다.</p>
         <dl>
-          <div><dt>10년물 (합계)<span>전체가 얼마나 움직였나?</span></dt><dd>뉴스에 나오는 10년 국채금리입니다. 10년 실질금리와 10년 BE를 더한 값과 같습니다. 조각끼리 서로 상쇄되었는지도 이 줄에서 확인합니다.</dd></div>
           <div><dt>2년물<span>연준 때문인가?</span></dt><dd>향후 2년 기준금리 기대를 가장 직접 반영합니다.</dd></div>
           <div><dt>10년 실질금리<span>실질 자금비용이 올랐나?</span></dt><dd>성장 기대와 긴축이 합쳐진 값이며, 위험자산의 할인율로 작용합니다.</dd></div>
           <div><dt>10년 BE<span>인플레이션 걱정 때문인가?</span></dt><dd>시장이 가격에 반영한 10년 기대 인플레이션입니다.</dd></div>
@@ -300,7 +299,7 @@ footer .full { grid-column: 1 / -1; }
         <li>금리 지표끼리는 겹칩니다. 실질금리 상승 안에는 정책 기대와 기간프리미엄이 함께 들어 있으므로 원인은 1·2위를 함께 봅니다.</li>
         <li>경계 기준값은 판단으로 정한 초기값이며, 통계적으로 최적화한 값이 아닙니다.</li>
         <li>DXY는 유로 비중이 57.6%라서 달러 전반을 대표하기에는 한계가 있습니다.</li>
-        <li>토요일에 만든 잠정 화면에서는 10년 BE만 금요일 값이고 10년물과 실질금리는 목요일 값일 수 있습니다. 이때는 '실질 + BE'가 10년물과 몇 bp 다를 수 있으며, 화요일 갱신에서 맞춰집니다.</li>
+        <li>토요일에 만든 잠정 화면에서는 10년 BE만 금요일 값이고, 10년물과 실질금리는 금요일 값이 아직 나오지 않아 그 전 거래일(보통 목요일) 값을 씁니다. 이때는 '실질 + BE'가 10년물과 몇 bp 다를 수 있습니다. 보통은 화요일 갱신에서 맞춰지지만, 월요일이 미국 휴일인 주에는 화요일에도 금요일 값이 나오지 않아 다음 주 토요일에 기록 파일만 확정값으로 고쳐집니다.</li>
       </ul>
     </div>
   </section>

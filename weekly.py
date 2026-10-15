@@ -34,7 +34,7 @@ RATES = [  # (key, label, what it shows, source, id)
     ("t10yie", "10년 BE", "인플레이션 기대", "fred", "T10YIE"),
     ("acmtp10", "기간프리미엄", "재정·공급·불확실성", "acm", "ACMTP10"),
 ]
-TOTAL = ("dgs10", "10년물", "10년 실질 + 10년 BE. 합계라서 원인 순위에서 제외", "fred", "DGS10")  # reference line
+TOTAL = ("dgs10", "10년물", "10년 실질과 10년 BE를 더한 값", "fred", "DGS10")  # reference line, not ranked
 SPREAD = [  # (key, label, what it shows, source, id, unit, threshold % over 4 weeks)
     ("move", "MOVE", "금리 변동성", "yahoo", "^MOVE", "", 20),
     ("hy", "HY OAS", "신용", "fred", "BAMLH0A0HYM2", "bp", 15),
@@ -111,13 +111,14 @@ def compute(series, friday):
     key, label, what, _, sid = TOTAL
     d1, v1 = on_or_before(series[key], friday)
     d0, v0 = on_or_before(series[key], prior)
-    rec["total"] = {"key": key, "label": label, "what": what, "id": sid, "value": v1, "change_bp": (v1 - v0) * 100}
+    rec["total"] = {"key": key, "label": label, "what": what, "id": sid, "value": v1, "change_bp": (v1 - v0) * 100,
+                    "dates": [str(d0.date()), str(d1.date())]}
     note(rec, label, d0, d1, prior, friday)
     for key, label, what, _, sid in RATES:
         d1, v1 = on_or_before(series[key], friday)
         d0, v0 = on_or_before(series[key], prior)
         rec["rates"].append({"key": key, "label": label, "what": what, "id": sid,
-                             "value": v1, "change_bp": (v1 - v0) * 100})
+                             "value": v1, "change_bp": (v1 - v0) * 100, "dates": [str(d0.date()), str(d1.date())]})
         note(rec, label, d0, d1, prior, friday)
     ranked = sorted(rec["rates"], key=lambda r: abs(r["change_bp"]), reverse=True)
     for i, r in enumerate(ranked):
@@ -145,7 +146,10 @@ def pad(text, width):
 def render_text(rec):
     lines = [f"날짜: {rec['friday']} (4주 전: {rec['prior']})", "", "[금리]          값        4주 변화"]
     t = rec["total"]
-    lines.append(f"{pad(t['label'] + '(합계)', 14)}{t['value']:>6.2f}%   {t['change_bp']:+5.0f}bp   = 10년 실질 + 10년 BE")
+    parts = [r["dates"] for r in rec["rates"] if r["key"] in ("dfii10", "t10yie")]
+    same_day = all(p == t["dates"] for p in parts)  # Saturday runs mix Thursday and Friday values
+    lines.append(f"{pad(t['label'] + '(합계)', 14)}{t['value']:>6.2f}%   {t['change_bp']:+5.0f}bp   "
+                 + ("= 10년 실질 + 10년 BE" if same_day else "≈ 10년 실질 + 10년 BE (기준일이 달라 몇 bp 차이 가능)"))
     for r in rec["rates"]:
         lines.append(f"{pad(r['label'], 14)}{r['value']:>6.2f}%   {r['change_bp']:+5.0f}bp")
     top = sorted(rec["rates"], key=lambda r: r["rank"])[:2]
