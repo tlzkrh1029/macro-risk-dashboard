@@ -1,26 +1,8 @@
 # macro-risk-dashboard
 
-미국 증시와 크립토 노출의 크기를 정하기 위한 매크로 리스크 모니터링 체계입니다.
+미국 금리가 왜 움직이고, 그 충격이 위험자산으로 번지고 있는지 보는 매크로 리스크 대시보드입니다.
 
 > 지표 해석 프레임에 관한 정리이며 투자 자문이 아닙니다.
 
-## 문서
-
-| 파일 | 내용 |
-|---|---|
-| [`docs/v2-design.md`](docs/v2-design.md) | 현재 설계 (v2, 2026-10-14). v2 검토에서 나온 P0 항목을 고치기 전까지는 그대로 믿고 쓰지 않습니다 |
-| [`docs/review-v2-2026-10-14.md`](docs/review-v2-2026-10-14.md) | v2 검토 보고서. 다섯 관점의 비판, 사이징 규칙 백테스트, 개선 우선순위(P0~P2) |
-| [`docs/review-2026-10-14.md`](docs/review-2026-10-14.md) | v1 검토 보고서. 무엇이 왜 바뀌었는지와 데이터 근거 |
-| [`docs/v1-design.md`](docs/v1-design.md) | 최초 설계 (v1, 2026-08-19). 비교용으로 보존 |
-
-## 검증 스크립트
-
-`analysis/verify_v1.py`는 검토 보고서에 나온 수치(금리 분해, 백분위, 프록시 오염도, BTC 상관, 복합 경보 백테스트)를 다시 계산합니다. API 키 없이 연준, 뉴욕 연은, Yahoo Finance 데이터를 내려받습니다.
-
-```bash
-pip install pandas numpy scipy xlrd requests
-python analysis/verify_v1.py            # 데이터를 analysis/.cache/에 내려받고 계산
-python analysis/verify_v1.py --offline  # 내려받은 데이터로 다시 계산
-```
-
-`analysis/critique-v2/`에는 v2 검토에 쓴 백테스트·경보 검증 스크립트와 결과 원자료가 있습니다.
+- **기준 문서**: [`DASHBOARD.md`](DASHBOARD.md)
+- **이전 작업 기록**: [`archive/`](archive/). 처음 설계(v1), 개정안(v2), 검토 보고서와 검증 스크립트를 참고용으로 보존합니다.
