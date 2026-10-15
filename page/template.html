@@ -337,7 +337,8 @@ function sparkline(points, fmt, label) {
 function render(d) {
   const f = new Date(d.friday + "T00:00:00");
   document.getElementById("eyebrow").textContent =
-    `주간 판독 · ${d.friday} (${WEEKDAY[f.getDay()]}) 미국 종가 기준 · 4주 전 ${d.prior} 대비`;
+    `주간 판독 · ${d.friday} (${WEEKDAY[f.getDay()]}) 미국 종가 기준 · 4주 전 ${d.prior} 대비` +
+    (d.provisional ? " · 일부 지표는 잠정값 (아래 데이터 메모 참고)" : "");
 
   /* Verdict band */
   document.getElementById("state-sw").style.background = STATUS[d.verdict];

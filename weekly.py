@@ -94,16 +94,25 @@ def verdict_of(hits):
     return "안정" if hits == 0 else ("경계" if hits <= 2 else "스트레스")
 
 
+def note(rec, label, d0, d1, prior, friday):
+    """Flag values not taken on the Friday itself (holiday, or not yet published)."""
+    used = [f"{d.month}/{d.day}" for d, want in ((d0, prior), (d1, friday)) if d != want]
+    if used:
+        rec["notes"].append(f"{label}: 금요일 값이 없어 {', '.join(used)} 값 사용")
+        if d1 != friday:
+            rec["provisional"] = True
+
+
 def compute(series, friday):
     prior = friday - timedelta(weeks=4)
-    rec = {"friday": str(friday.date()), "prior": str(prior.date()), "rates": [], "spread": [], "notes": []}
+    rec = {"friday": str(friday.date()), "prior": str(prior.date()), "rates": [], "spread": [], "notes": [],
+           "provisional": False}
     for key, label, what, _, sid in RATES:
         d1, v1 = on_or_before(series[key], friday)
         d0, v0 = on_or_before(series[key], prior)
         rec["rates"].append({"key": key, "label": label, "what": what, "id": sid,
                              "value": v1, "change_bp": (v1 - v0) * 100})
-        if d1 != friday or d0 != prior:
-            rec["notes"].append(f"{label}: {d0.date()} → {d1.date()} 값 사용")
+        note(rec, label, d0, d1, prior, friday)
     ranked = sorted(rec["rates"], key=lambda r: abs(r["change_bp"]), reverse=True)
     for i, r in enumerate(ranked):
         r["rank"] = i + 1
@@ -114,8 +123,7 @@ def compute(series, friday):
         rec["spread"].append({"key": key, "label": label, "what": what, "id": sid, "unit": unit,
                               "value": v1 * 100 if unit == "bp" else v1, "change_pct": pct,
                               "threshold": th, "over": pct >= th})
-        if d1 != friday or d0 != prior:
-            rec["notes"].append(f"{label}: {d0.date()} → {d1.date()} 값 사용")
+        note(rec, label, d0, d1, prior, friday)
     rec["hits"] = sum(r["over"] for r in rec["spread"])
     rec["verdict"] = verdict_of(rec["hits"])
     rec["cause"] = [ranked[0]["label"], ranked[1]["label"]]
@@ -197,6 +205,9 @@ def main():
     print(render_text(rec))
     if "--save" in sys.argv:
         print(f"\nsaved {save_record(rec, friday)}")
+        prev = friday - timedelta(weeks=1)
+        if record_path(prev).exists():  # replace last week's provisional values with final ones
+            print(f"refreshed {save_record(compute(series, prev), prev)}")
     if "--page" in sys.argv:
         print(f"built {build_page(series, rec, friday)}")
 
