@@ -34,6 +34,7 @@ RATES = [  # (key, label, what it shows, source, id)
     ("t10yie", "10년 BE", "인플레이션 기대", "fred", "T10YIE"),
     ("acmtp10", "기간프리미엄", "재정·공급·불확실성", "acm", "ACMTP10"),
 ]
+TOTAL = ("dgs10", "10년물", "10년 실질 + 10년 BE. 합계라서 원인 순위에서 제외", "fred", "DGS10")  # reference line
 SPREAD = [  # (key, label, what it shows, source, id, unit, threshold % over 4 weeks)
     ("move", "MOVE", "금리 변동성", "yahoo", "^MOVE", "", 20),
     ("hy", "HY OAS", "신용", "fred", "BAMLH0A0HYM2", "bp", 15),
@@ -74,7 +75,7 @@ def acm(column):
 
 def load_all():
     loaders = {"fred": fred, "yahoo": yahoo, "acm": acm}
-    return {row[0]: loaders[row[3]](row[4]) for row in RATES + SPREAD}
+    return {row[0]: loaders[row[3]](row[4]) for row in RATES + SPREAD + [TOTAL]}
 
 
 def on_or_before(s, d):
@@ -107,6 +108,11 @@ def compute(series, friday):
     prior = friday - timedelta(weeks=4)
     rec = {"friday": str(friday.date()), "prior": str(prior.date()), "rates": [], "spread": [], "notes": [],
            "provisional": False}
+    key, label, what, _, sid = TOTAL
+    d1, v1 = on_or_before(series[key], friday)
+    d0, v0 = on_or_before(series[key], prior)
+    rec["total"] = {"key": key, "label": label, "what": what, "id": sid, "value": v1, "change_bp": (v1 - v0) * 100}
+    note(rec, label, d0, d1, prior, friday)
     for key, label, what, _, sid in RATES:
         d1, v1 = on_or_before(series[key], friday)
         d0, v0 = on_or_before(series[key], prior)
@@ -138,6 +144,8 @@ def pad(text, width):
 
 def render_text(rec):
     lines = [f"날짜: {rec['friday']} (4주 전: {rec['prior']})", "", "[금리]          값        4주 변화"]
+    t = rec["total"]
+    lines.append(f"{pad(t['label'] + '(합계)', 14)}{t['value']:>6.2f}%   {t['change_bp']:+5.0f}bp   = 10년 실질 + 10년 BE")
     for r in rec["rates"]:
         lines.append(f"{pad(r['label'], 14)}{r['value']:>6.2f}%   {r['change_bp']:+5.0f}bp")
     top = sorted(rec["rates"], key=lambda r: r["rank"])[:2]
@@ -177,7 +185,7 @@ def save_record(rec, friday):
 def build_page(series, rec, friday):
     fridays = [friday - timedelta(weeks=k) for k in range(SPARK_WEEKS - 1, -1, -1)]
     spark = {}
-    for key, *_rest in RATES + SPREAD:
+    for key, *_rest in RATES + SPREAD + [TOTAL]:
         unit_bp = any(row[0] == key and row[5] == "bp" for row in SPREAD)
         spark[key] = [{"d": str(f.date()), "v": on_or_before(series[key], f)[1] * (100 if unit_bp else 1)}
                       for f in fridays]

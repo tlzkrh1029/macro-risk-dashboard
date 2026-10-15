@@ -132,6 +132,10 @@ h1 { font-size: clamp(24px, 4vw, 32px); font-weight: 700; letter-spacing: -0.01e
 .track .fill.neg { border-radius: 3px 0 0 3px; }
 .track .fill.lead { background: var(--accent); }
 .track .fill.over { background: var(--warn); }
+/* 10y nominal: the sum of the pieces below it, drawn as an outline so it never reads as a cause */
+.row.total { border-bottom-style: dashed; }
+.row.total .label { font-weight: 500; color: var(--ink-2); }
+.track .fill.total { background: transparent; box-shadow: inset 0 0 0 1.5px var(--ink-2); }
 .track .tick { position: absolute; top: -4px; bottom: -4px; width: 2px; background: var(--ink-2); border-radius: 1px; }
 .status { font-size: 12px; color: var(--muted); white-space: nowrap; }
 .status.over { color: var(--ink); font-weight: 600; }
@@ -227,7 +231,7 @@ footer .full { grid-column: 1 / -1; }
     <section class="panel" aria-labelledby="h-rates">
       <div class="panel-head">
         <h2 id="h-rates">금리: 무엇이 움직이나</h2>
-        <p>4주 변화(bp). 가장 크게 움직인 두 지표가 원인입니다</p>
+        <p>4주 변화(bp). 맨 위 10년물은 합계이고, 아래 네 지표 중 가장 크게 움직인 두 개가 원인입니다</p>
       </div>
       <div class="rows" id="rates"></div>
     </section>
@@ -269,8 +273,9 @@ footer .full { grid-column: 1 / -1; }
     <div class="guide-cols">
       <div>
         <h3>금리: 10년 금리를 원인별로 나눈 조각</h3>
-        <p class="sub">10년 금리는 '실질금리 + 기대 인플레이션', 또는 '정책금리 기대 + 기간프리미엄'으로 나뉩니다. 10년 금리 자체는 합계라서 원인을 말해 주지 못하므로 조각을 직접 봅니다.</p>
+        <p class="sub">10년 금리는 '실질금리 + 기대 인플레이션', 또는 '정책금리 기대 + 기간프리미엄'으로 나뉩니다. 10년 금리 자체는 합계라서 원인을 말해 주지 못하므로, 맨 위에 참고로 보여 주고 원인은 조각에서 찾습니다.</p>
         <dl>
+          <div><dt>10년물 (합계)<span>전체가 얼마나 움직였나?</span></dt><dd>뉴스에 나오는 10년 국채금리입니다. 10년 실질금리와 10년 BE를 더한 값과 같습니다. 조각끼리 서로 상쇄되었는지도 이 줄에서 확인합니다.</dd></div>
           <div><dt>2년물<span>연준 때문인가?</span></dt><dd>향후 2년 기준금리 기대를 가장 직접 반영합니다.</dd></div>
           <div><dt>10년 실질금리<span>실질 자금비용이 올랐나?</span></dt><dd>성장 기대와 긴축이 합쳐진 값이며, 위험자산의 할인율로 작용합니다.</dd></div>
           <div><dt>10년 BE<span>인플레이션 걱정 때문인가?</span></dt><dd>시장이 가격에 반영한 10년 기대 인플레이션입니다.</dd></div>
@@ -295,6 +300,7 @@ footer .full { grid-column: 1 / -1; }
         <li>금리 지표끼리는 겹칩니다. 실질금리 상승 안에는 정책 기대와 기간프리미엄이 함께 들어 있으므로 원인은 1·2위를 함께 봅니다.</li>
         <li>경계 기준값은 판단으로 정한 초기값이며, 통계적으로 최적화한 값이 아닙니다.</li>
         <li>DXY는 유로 비중이 57.6%라서 달러 전반을 대표하기에는 한계가 있습니다.</li>
+        <li>토요일에 만든 잠정 화면에서는 10년 BE만 금요일 값이고 10년물과 실질금리는 목요일 값일 수 있습니다. 이때는 '실질 + BE'가 10년물과 몇 bp 다를 수 있으며, 화요일 갱신에서 맞춰집니다.</li>
       </ul>
     </div>
   </section>
@@ -306,7 +312,7 @@ footer .full { grid-column: 1 / -1; }
     </div>
     <div>
       <h3>데이터</h3>
-      <p>FRED (DGS2, DFII10, T10YIE, BAMLH0A0HYM2), 뉴욕 연은 ACM 기간프리미엄 (ACMTP10), Yahoo Finance (^MOVE, ^VIX, DX-Y.NYB). 금요일이 휴장이면 그 주의 마지막 거래일 값을 씁니다.</p>
+      <p>FRED (DGS10, DGS2, DFII10, T10YIE, BAMLH0A0HYM2), 뉴욕 연은 ACM 기간프리미엄 (ACMTP10), Yahoo Finance (^MOVE, ^VIX, DX-Y.NYB). 금요일이 휴장이면 그 주의 마지막 거래일 값을 씁니다.</p>
     </div>
     <p class="full" id="notes"></p>
     <p class="full">지표 해석 프레임에 관한 정리이며 투자 자문이 아닙니다.</p>
@@ -408,14 +414,14 @@ function render(d) {
     chips.append(c);
   });
 
-  /* Rates panel: diverging bars on one shared bp scale */
-  const maxBp = Math.max(20, Math.ceil(Math.max(...d.rates.map(r => Math.abs(r.change_bp))) / 10) * 10);
+  /* Rates panel: diverging bars on one shared bp scale; the 10y total sits on top as an outline */
+  const maxBp = Math.max(20, Math.ceil(Math.max(...[d.total, ...d.rates].map(r => Math.abs(r.change_bp))) / 10) * 10);
   const rates = document.getElementById("rates");
-  d.rates.forEach(r => {
-    const row = el("div", "row");
+  const rateRow = (r, isTotal) => {
+    const row = el("div", "row" + (isTotal ? " total" : ""));
     const name = el("div", "name");
-    const lab = el("div", "label", r.label);
-    if (r.rank <= 2) lab.append(el("span", "tag", `원인 ${r.rank}위`));
+    const lab = el("div", "label", isTotal ? `${r.label} (합계)` : r.label);
+    if (!isTotal && r.rank <= 2) lab.append(el("span", "tag", `원인 ${r.rank}위`));
     name.append(lab, el("div", "what", r.what));
     const val = el("div", "value", fmtRate(r.value));
     val.append(el("small", null, "%"));
@@ -426,14 +432,16 @@ function render(d) {
     track.setAttribute("aria-label", `${r.label} 4주 변화 ${fmtBp(r.change_bp)}, 눈금 ±${maxBp}bp`);
     const zero = el("span", "zero"); zero.style.left = "50%";
     const w = (Math.abs(r.change_bp) / maxBp) * 50;
-    const fill = el("span", "fill " + (r.change_bp >= 0 ? "pos" : "neg") + (r.rank <= 2 ? " lead" : ""));
+    const fill = el("span", "fill " + (r.change_bp >= 0 ? "pos" : "neg") + (isTotal ? " total" : r.rank <= 2 ? " lead" : ""));
     fill.style.width = w + "%";
     fill.style.left = r.change_bp >= 0 ? "50%" : (50 - w) + "%";
     track.append(fill, zero);
     bar.append(track, el("span", "status mono", `±${maxBp}bp`));
     row.append(name, val, sparkline(d.spark[r.key], v => fmtRate(v) + "%", r.label), bar);
     rates.append(row);
-  });
+  };
+  rateRow(d.total, true);
+  d.rates.forEach(r => rateRow(r, false));
 
   /* Spread panel: progress toward the threshold, track runs to 150% of it */
   const spread = document.getElementById("spread");
@@ -481,7 +489,7 @@ function render(d) {
   if (d.memo) document.getElementById("memo").textContent = d.memo;
   else document.getElementById("memo-sec").hidden = true;
   document.getElementById("notes").textContent = d.notes.length ? "데이터 메모: " + d.notes.join("; ") : "";
-  const all = [...d.rates.map(r => ({ ...r, fmt: v => fmtRate(v) + "%" })), ...d.spread.map(r => ({ ...r, fmt: v => fmtLevel(r, v) }))];
+  const all = [...[d.total, ...d.rates].map(r => ({ ...r, fmt: v => fmtRate(v) + "%" })), ...d.spread.map(r => ({ ...r, fmt: v => fmtLevel(r, v) }))];
   const table = document.getElementById("table");
   const head = el("tr");
   head.append(el("th", null, "금요일"), ...all.map(r => el("th", null, r.label)));
