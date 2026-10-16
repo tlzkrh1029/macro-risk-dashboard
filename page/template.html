@@ -167,7 +167,9 @@ h1 { font-size: clamp(24px, 4vw, 32px); font-weight: 700; letter-spacing: -0.01e
 .score h3 { margin: 0 0 6px; font-size: 13px; font-weight: 600; color: var(--ink-2); }
 .score .table-wrap { margin-top: 0; }
 table.score-table { min-width: 0; }
-.score-table th { white-space: normal; vertical-align: bottom; font-size: 12px; }
+.score-table th { white-space: normal; vertical-align: bottom; font-size: 12px; word-break: keep-all; }
+.score-table td.v { word-break: keep-all; }
+.score-table .rg { display: block; font-size: 12px; color: var(--muted); margin-left: 15px; }
 .score-table td.v, .score-table th.v { font-family: var(--font-body); text-align: left; }
 .sw-s { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 6px; vertical-align: 0; }
 .share { display: inline-grid; grid-template-columns: 3.4em 52px; gap: 6px; align-items: center; justify-content: end; }
@@ -181,7 +183,8 @@ td.hit::before { content: ""; display: inline-block; width: 7px; height: 7px; bo
 
 /* Regime map in the guide */
 table.regime-map { min-width: 0; font-size: 12.5px; }
-.regime-map th, .regime-map td { white-space: normal; text-align: left; font-family: var(--font-body); vertical-align: top; }
+.regime-map th, .regime-map td { white-space: normal; text-align: left; font-family: var(--font-body); vertical-align: top; word-break: keep-all; }
+.regime-map td:first-child { white-space: nowrap; }
 .regime-map td.now { outline: 2px solid var(--accent); outline-offset: -2px; background: var(--accent-wash); border-radius: 3px; }
 .regime-map td b { font-weight: 600; display: block; }
 .regime-map td span { color: var(--muted); }
@@ -227,8 +230,10 @@ footer .full { grid-column: 1 / -1; }
 @media (max-width: 820px) {
   .panels { grid-template-columns: minmax(0, 1fr); }
   .guide-cols { grid-template-columns: minmax(0, 1fr); }
-  .score-grid { grid-template-columns: minmax(0, 1fr); }
   footer { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 960px) {
+  .score-grid { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 520px) {
   .verdict { grid-template-columns: minmax(0, 1fr); padding: 18px; }
@@ -360,7 +365,7 @@ footer .full { grid-column: 1 / -1; }
       <div>
         <h3>자동 해설과 성적표</h3>
         <dl>
-          <div><dt>자동 해설<span>숫자를 쉬운 말로</span></dt><dd>코드에 정해 둔 문장 틀에 이번 주 숫자를 넣어 만듭니다. AI가 매번 새로 쓰는 글이 아니므로 숫자와 어긋난 해설이 나오지 않습니다. 메모 칸은 지금처럼 직접 쓰는 칸입니다.</dd></div>
+          <div><dt>자동 해설<span>숫자를 쉬운 말로</span></dt><dd>코드에 정해 둔 문장 틀에 이번 주 숫자를 넣어 만듭니다. AI가 매번 새로 쓰는 글이 아니라, 정해진 규칙대로 숫자를 문장으로 옮긴 글입니다. 금리 상승이 번지는 상황인지에 대한 해석은 국면 이름이 맡고, 그 밖의 해석은 메모 칸에 사람이 직접 씁니다.</dd></div>
           <div><dt>판정 성적표<span>지난 판정이 맞았나?</span></dt><dd>판정을 내리고 8주가 지나면, 그동안 S&amp;P 500이 5% 이상 내려간 적이 있는지와 HY OAS가 50bp 이상 넓어진 적이 있는지를 붙입니다. 경계 기준을 바꾸거나 지표를 더할 때, 이 기록을 근거로 씁니다.</dd></div>
         </dl>
       </div>
@@ -371,7 +376,7 @@ footer .full { grid-column: 1 / -1; }
         <li>공통 선정 기준은 각 시장의 대표 지표일 것, 매일 무료로 받을 수 있을 것, 이력이 길 것입니다.</li>
         <li>금리 지표끼리는 겹칩니다. 실질금리 상승 안에는 정책 기대와 기간프리미엄이 함께 들어 있으므로 원인은 1·2위를 함께 봅니다.</li>
         <li>경계 기준값은 판단으로 정한 초기값이며, 통계적으로 최적화한 값이 아닙니다.</li>
-        <li>국면 이름은 예측 신호가 아니라 읽기 도구입니다. 2008년 이후 데이터에서 국면에 따라 이후 주가 하락 빈도가 크게 갈리지는 않았습니다.</li>
+        <li>국면 이름은 예측 신호가 아니라 읽기 도구입니다. 2008년 이후 데이터(HY OAS는 2023년 10월부터)에서, 기준을 넘은 전이 지표가 있는 세 국면(금리발 전이, 금리 외 요인, 금리 하락 속 전이) 사이에는 이후 8주 주가 하락 빈도가 크게 다르지 않았습니다.</li>
         <li>DXY는 유로 비중이 57.6%라서 달러 전반을 대표하기에는 한계가 있습니다.</li>
         <li>토요일에 만든 잠정 화면에서는 10년 BE만 금요일 값이고, 10년물과 실질금리는 금요일 값이 아직 나오지 않아 그 전 거래일(보통 목요일) 값을 씁니다. 이때는 '실질 + BE'가 10년물과 몇 bp 다를 수 있습니다. 보통은 화요일 갱신에서 맞춰지지만, 월요일이 미국 휴일인 주에는 화요일에도 금요일 값이 나오지 않아 다음 주 토요일에 기록 파일만 확정값으로 고쳐집니다.</li>
       </ul>
@@ -564,10 +569,14 @@ function render(d) {
   /* Scorecard: share of verdict weeks followed by a fall, with the all-weeks rate as a tick */
   const sc = d.scorecard;
   const all8 = sc.summary.find(s => s.verdict === "전체");
-  const fmtDd = v => (v >= 0 ? "+" : "−") + Math.abs(v).toFixed(1) + "%";
-  document.getElementById("score-sub").textContent = all8.n
-    ? `판정 뒤 ${sc.weeks}주 동안 실제로 일어난 일입니다. ${sc.from}부터 ${sc.to}까지 ${all8.n}주를 채점했습니다`
-    : "아직 채점할 수 있는 주가 없습니다";
+  const fmtDd = v => (Math.abs(v) < 0.05 ? "0.0" : "−" + Math.abs(v).toFixed(1)) + "%";
+  const fmtWiden = v => (v > 0 ? "+" : "") + Math.round(v) + "bp";
+  document.getElementById("score-sub").textContent = sc.error
+    ? "S&P 500 데이터를 받지 못해 이번 갱신에서는 성적표를 만들지 못했습니다"
+    : all8 && all8.n
+      ? `판정 뒤 ${sc.weeks}주 동안 실제로 일어난 일입니다. ${sc.from}부터 ${sc.to}까지 ${all8.n}주를 채점했습니다` +
+        (sc.skipped ? ` (데이터가 없어 ${sc.skipped}주 제외)` : "")
+      : "아직 채점할 수 있는 주가 없습니다";
   const shareCell = (v, base, label) => {
     const td = el("td");
     if (v == null) { td.textContent = "–"; return td; }
@@ -602,25 +611,26 @@ function render(d) {
   sum.append(sthead, stbody);
   const rec8 = document.getElementById("score-recent");
   const rh = el("tr");
-  rh.append(el("th", "v", "판정 주"), el("th", "v", "판정 · 국면"), el("th", null, "S&P 최대 낙폭"), el("th", null, "HY 최대 확대"));
+  rh.append(el("th", "v", "판정 주"), el("th", "v", "판정과 국면"), el("th", null, "S&P 최대 낙폭"), el("th", null, "HY 최대 확대"));
   const rthead = el("thead"); rthead.append(rh);
   const rtbody = el("tbody");
   [...sc.recent].reverse().forEach(r => {
     const tr = el("tr");
     const v = el("td", "v");
     const sw = el("span", "sw-s"); sw.style.background = STATUS[r.verdict];
-    v.append(sw, `${r.verdict} · ${r.regime}`);
+    v.append(sw, r.verdict, el("span", "rg", r.regime));
     const day = el("td", null, r.d.slice(2).replaceAll("-", "."));
     day.title = r.d;
-    tr.append(day, v, el("td", r.fell ? "hit" : null, fmtDd(r.dd)), el("td", r.credit ? "hit" : null, fmtBp(r.hy)));
+    tr.append(day, v, el("td", r.fell ? "hit" : null, fmtDd(r.dd)), el("td", r.credit ? "hit" : null, fmtWiden(r.hy)));
     rtbody.append(tr);
   });
   rec8.append(rthead, rtbody);
   document.getElementById("score-note").textContent =
     `'S&P ${Math.abs(sc.dd_cut)}% 이상 하락'은 판정 뒤 ${sc.weeks}주 안에 S&P 500이 판정일 종가보다 ${Math.abs(sc.dd_cut)}% 이상 내려간 적이 있다는 뜻이고, ` +
     `'HY ${sc.hy_cut}bp 이상 확대'는 같은 기간에 HY OAS가 판정일보다 ${sc.hy_cut}bp 이상 넓어진 적이 있다는 뜻입니다. ` +
-    `노란 표시는 그 기준을 넘은 주이고, 막대의 세로선은 전체 비율입니다. * 표시는 10주 미만이라 비율을 해석하기 어렵다는 뜻입니다. ` +
-    `FRED가 HY OAS를 최근 3년치만 제공하므로 성적표도 그 기간만 다루며, 운영을 시작한 2026-10-09 전의 판정은 같은 규칙으로 다시 계산한 값입니다.`;
+    `최근 판정 표에서 숫자 앞의 노란 네모는 그 기준을 넘었다는 뜻이고(판정 이름 앞의 네모는 판정 색입니다), 비율 막대의 세로선은 전체 주의 비율입니다. ` +
+    `* 표시는 10주 미만이라 비율을 해석하기 어렵다는 뜻입니다. FRED가 HY OAS를 최근 3년치만 제공하므로 성적표도 그 기간만 다룹니다. ` +
+    `성적표의 판정은 모두 지금 규칙으로 다시 계산한 값이며, 그 주에 실제로 낸 판정은 주간 기록 파일에 남아 있습니다.`;
 
   /* Regime map in the guide; the current cell is outlined */
   const bp = d.regime_bp;
@@ -628,10 +638,10 @@ function render(d) {
     `10년물이 4주 동안 ${bp}bp 이상 움직였는지와, 기준을 넘은 전이 지표가 있는지로 여섯 국면 가운데 하나를 고릅니다. 테두리가 있는 칸이 이번 주입니다.`;
   const map = document.getElementById("regime-map");
   const mh = el("tr");
-  mh.append(el("th", null, "10년물 4주 변화"), el("th", null, "전이 지표가 켜짐"), el("th", null, "전이 지표가 없음"));
+  mh.append(el("th", null, "10년물 4주 변화"), el("th", null, "기준을 넘은 전이 지표 있음"), el("th", null, "기준을 넘은 전이 지표 없음"));
   const mthead = el("thead"); mthead.append(mh);
   const mtbody = el("tbody");
-  [["상승", `+${bp}bp 이상`], ["횡보", `±${bp}bp 이내`], ["하락", `−${bp}bp 이하`]].forEach(([dir, label]) => {
+  [["상승", `+${bp}bp 이상`], ["횡보", `±${bp}bp 미만`], ["하락", `−${bp}bp 이하`]].forEach(([dir, label]) => {
     const tr = el("tr");
     tr.append(el("td", null, label));
     [true, false].forEach(spreading => {
