@@ -27,6 +27,11 @@ UA = {"User-Agent": "Mozilla/5.0"}
 ACM_URL = "https://www.newyorkfed.org/medialibrary/media/research/data_indicators/ACMTermPremium.xls"
 HISTORY_WEEKS = 12   # verdict strip on the page
 SPARK_WEEKS = 13     # weekly points per sparkline
+YAHOO_DAYS = 1300    # enough to recompute the rule back to when FRED's HY OAS history starts
+REGIME_BP = 15       # 10y 4-week move that counts as a direction for the regime label
+SCORE_WEEKS = 8      # scorecard: what happened in the 8 weeks after each verdict
+SCORE_DD = -5        # S&P 500 max drawdown (%) that counts as a fall
+SCORE_HY = 50        # HY OAS max widening (bp) that counts as credit stress
 
 RATES = [  # (key, label, what it shows, source, id)
     ("dgs2", "2년물", "연준 정책 기대", "fred", "DGS2"),
@@ -41,6 +46,16 @@ SPREAD = [  # (key, label, what it shows, source, id, unit, threshold % over 4 w
     ("vix", "VIX", "주식 변동성", "yahoo", "^VIX", "", 30),
     ("dxy", "DXY", "글로벌 유동성", "yahoo", "DX-Y.NYB", "", 3),
 ]
+OUTCOME = ("spx", "S&P 500", "", "yahoo", "^GSPC")  # scorecard only, not an indicator
+PLAIN = {"move": "채권 변동성", "hy": "신용", "vix": "주식 변동성", "dxy": "달러"}
+REGIMES = {  # (10y direction, spreading?) -> (name, meaning)
+    ("상승", True): ("금리발 전이", "금리가 오르면서 그 충격이 위험자산으로 번지고 있습니다."),
+    ("횡보", True): ("금리 밖 요인", "금리는 크게 움직이지 않았는데 위험자산이 흔들리고 있습니다."),
+    ("하락", True): ("도피형", "금리가 내리는 가운데 위험자산이 흔들리고 있습니다. 불안해진 돈이 국채로 옮겨 가는 모습입니다."),
+    ("상승", False): ("질서 있는 금리 상승", "금리는 올랐지만 아직 위험자산으로 번지지 않았습니다."),
+    ("횡보", False): ("조용함", "금리도 위험자산도 크게 움직이지 않았습니다."),
+    ("하락", False): ("질서 있는 금리 하락", "금리는 내렸고 위험자산도 안정적입니다."),
+}
 
 
 def fred(series_id):
@@ -59,7 +74,7 @@ def fred(series_id):
 
 def yahoo(ticker):
     url = (f"https://query1.finance.yahoo.com/v8/finance/chart/{requests.utils.quote(ticker)}"
-           f"?period1={int(time.time()) - 400 * 86400}&period2={int(time.time())}&interval=1d")
+           f"?period1={int(time.time()) - YAHOO_DAYS * 86400}&period2={int(time.time())}&interval=1d")
     j = requests.get(url, headers=UA, timeout=60).json()["chart"]["result"][0]
     s = pd.Series(j["indicators"]["quote"][0]["close"],
                   index=pd.to_datetime(j["timestamp"], unit="s").normalize()).dropna()
@@ -75,7 +90,7 @@ def acm(column):
 
 def load_all():
     loaders = {"fred": fred, "yahoo": yahoo, "acm": acm}
-    return {row[0]: loaders[row[3]](row[4]) for row in RATES + SPREAD + [TOTAL]}
+    return {row[0]: loaders[row[3]](row[4]) for row in RATES + SPREAD + [TOTAL, OUTCOME]}
 
 
 def on_or_before(s, d):
@@ -93,6 +108,109 @@ def last_friday(today):
 
 def verdict_of(hits):
     return "안정" if hits == 0 else ("경계" if hits <= 2 else "스트레스")
+
+
+def regime_of(total_bp, hits):
+    bp = round(total_bp)
+    direction = "상승" if bp >= REGIME_BP else ("하락" if bp <= -REGIME_BP else "횡보")
+    name, meaning = REGIMES[(direction, hits > 0)]
+    return {"name": name, "meaning": meaning, "dir": direction, "spreading": hits > 0}
+
+
+# --- plain-language reading: fixed sentence templates filled from the numbers (no free text) ---
+
+def _final(word):
+    """Final consonant index of the last Hangul syllable (0 = none)."""
+    ch = word[-1]
+    return (ord(ch) - 0xAC00) % 28 if "가" <= ch <= "힣" else 0
+
+
+def _topic(word):
+    return word + ("은" if _final(word) else "는")
+
+
+def _ro(word):
+    return word + ("로" if _final(word) in (0, 8) else "으로")
+
+
+def _and(words):
+    if len(words) == 1:
+        return words[0]
+    if len(words) == 2:
+        return words[0] + ("과" if _final(words[0]) else "와") + " " + words[1]
+    return ", ".join(words)
+
+
+def _bp(v):
+    v = round(v)
+    return ("+" if v >= 0 else "−") + f"{abs(v)}bp"
+
+
+def _moved(v):
+    return "올랐습니다" if v > 0 else "내렸습니다"
+
+
+def explain(rec):
+    """Two to five plain sentences for a non-expert, built only from rec's numbers."""
+    rate = {r["key"]: r for r in rec["rates"]}
+    t, real, be = round(rec["total"]["change_bp"]), round(rate["dfii10"]["change_bp"]), round(rate["t10yie"]["change_bp"])
+    out = []
+    if abs(t) < 5:
+        if abs(real) >= 15 and abs(be) >= 15 and real * be < 0:
+            out.append(f"10년 금리는 4주 동안 거의 그대로지만({_bp(t)}), 실질금리({_bp(real)})와 물가 기대(BE {_bp(be)})가 "
+                       "반대로 움직여 서로 상쇄된 결과입니다.")
+        else:
+            out.append(f"10년 금리는 4주 동안 거의 그대로입니다({_bp(t)}).")
+    else:
+        part = "상승분" if t > 0 else "하락분"
+        out.append(f"10년 금리가 4주 동안 {abs(t) / 100:.2f}%p {_moved(t)}({_bp(t)}).")
+        if real * t > 0 and be * t > 0:
+            share = real / t
+            if share >= 0.75:
+                out.append(f"{_topic(part)} 대부분 실질금리에서 나왔습니다(실질 {_bp(real)}, BE {_bp(be)}).")
+            elif share <= 0.25:
+                out.append(f"{_topic(part)} 대부분 물가 기대(BE)에서 나왔습니다(BE {_bp(be)}, 실질 {_bp(real)}).")
+            else:
+                out.append(f"실질금리({_bp(real)})와 물가 기대(BE {_bp(be)})가 함께 {_moved(t)}.")
+        elif real * t > 0:
+            tail = "거의 그대로입니다." if abs(be) < 5 else f"오히려 {abs(be)}bp {_moved(be)}."
+            out.append(f"{_topic(part)} 모두 실질금리에서 나왔고({_bp(real)}), 물가 기대(BE)는 {tail}")
+        else:
+            tail = "거의 그대로입니다." if abs(real) < 5 else f"오히려 {abs(real)}bp {_moved(real)}."
+            out.append(f"{_topic(part)} 모두 물가 기대(BE)에서 나왔고({_bp(be)}), 실질금리는 {tail}")
+    desc = {"dgs2": "연준 정책 기대를 보여 주는 2년물", "acmtp10": "국채를 오래 들고 있는 대가인 기간프리미엄"}
+    extra = [r for r in sorted(rec["rates"], key=lambda r: r["rank"])[:2]
+             if r["key"] in desc and abs(round(r["change_bp"])) >= 10]
+    if len(extra) == 1:
+        r = extra[0]
+        out.append(f"{_topic(desc[r['key']])} {_bp(r['change_bp'])} {_moved(r['change_bp'])}.")
+    elif len(extra) == 2:
+        a, b = extra
+        verb = _moved(a["change_bp"]) if a["change_bp"] * b["change_bp"] > 0 else "움직였습니다"
+        out.append(f"{_topic(desc[a['key']])} {_bp(a['change_bp'])}, {_topic(desc[b['key']])} {_bp(b['change_bp'])} {verb}.")
+    over = [PLAIN[r["key"]] for r in rec["spread"] if r["over"]]
+    near = [r for r in rec["spread"] if not r["over"] and r["change_pct"] >= 0.9 * r["threshold"]]
+    below = [PLAIN[r["key"]] for r in rec["spread"] if not r["over"] and r not in near]
+    near_core = f"{_topic(_and([PLAIN[r['key']] for r in near]))} 기준에 거의 닿았" if near else ""
+    near_num = f"(+{near[0]['change_pct']:.1f}%, 기준 +{near[0]['threshold']}%)" if len(near) == 1 else ""
+    if not over:
+        if near:
+            out.append(f"위험자산 쪽 네 지표는 모두 기준 아래지만, {near_core}습니다{near_num}.")
+        else:
+            out.append("위험자산 쪽 네 지표가 모두 기준 아래라서, 아직 번지지 않았습니다.")
+    elif len(over) == 4:
+        out.append("위험자산 쪽 네 경로가 모두 기준을 넘어, 충격이 넓게 번졌습니다.")
+    else:
+        out.append(f"{_ro(_and(over))}는 번지고 있습니다.")
+        if near and below:
+            out.append(f"{near_core}고{near_num}, {_topic(_and(below))} 아직 기준 아래입니다.")
+        elif near:
+            out.append(f"{near_core}습니다{near_num}.")
+        else:
+            out.append(f"{_topic(_and(below))} 아직 기준 아래입니다.")
+    if rec["provisional"]:
+        out.append("일부 금리 값은 아직 금요일 확정값이 아니어서, 다음 갱신 때 조금 바뀔 수 있습니다.")
+    return out
 
 
 def note(rec, label, d0, d1, prior, friday):
@@ -134,7 +252,54 @@ def compute(series, friday):
     rec["hits"] = sum(r["over"] for r in rec["spread"])
     rec["verdict"] = verdict_of(rec["hits"])
     rec["cause"] = [ranked[0]["label"], ranked[1]["label"]]
+    rec["regime"] = regime_of(rec["total"]["change_bp"], rec["hits"])
+    rec["reading"] = explain(rec)
     return rec
+
+
+def outcome(series, friday):
+    """What happened in the SCORE_WEEKS after a Friday: S&P 500 max drawdown (%) and HY OAS max widening (bp)."""
+    end = friday + timedelta(weeks=SCORE_WEEKS)
+    _, p0 = on_or_before(series["spx"], friday)
+    _, h0 = on_or_before(series["hy"], friday)
+    spx = series["spx"].loc[friday + timedelta(days=1):end]
+    hy = series["hy"].loc[friday + timedelta(days=1):end]
+    if spx.empty or hy.empty:
+        raise ValueError(f"no outcome data after {friday.date()}")
+    return {"dd": (float(spx.min()) / p0 - 1) * 100, "hy": (float(hy.max()) - h0) * 100}
+
+
+def score_week(series, friday):
+    rec = compute(series, friday)
+    out = outcome(series, friday)
+    return {"d": rec["friday"], "verdict": rec["verdict"], "hits": rec["hits"], "regime": rec["regime"]["name"],
+            "dd": out["dd"], "hy": out["hy"], "fell": out["dd"] <= SCORE_DD, "credit": out["hy"] >= SCORE_HY}
+
+
+def scorecard(series, friday):
+    """Every Friday whose 8 following weeks are complete, scored with the same rule.
+
+    Starts where FRED's HY OAS history (a rolling 3 years) allows the full 4-indicator rule.
+    """
+    first = series["hy"].index.min() + timedelta(weeks=4)
+    f = first + timedelta(days=(4 - first.weekday()) % 7)
+    rows, skipped = [], 0
+    while f <= friday - timedelta(weeks=SCORE_WEEKS):
+        try:
+            rows.append(score_week(series, f))
+        except ValueError:
+            skipped += 1
+        f += timedelta(weeks=1)
+    summary = []
+    for v in ["안정", "경계", "스트레스", "전체"]:
+        sub = rows if v == "전체" else [r for r in rows if r["verdict"] == v]
+        n = len(sub)
+        summary.append({"verdict": v, "n": n,
+                        "fell": sum(r["fell"] for r in sub) / n * 100 if n else None,
+                        "credit": sum(r["credit"] for r in sub) / n * 100 if n else None,
+                        "dd_median": float(pd.Series([r["dd"] for r in sub]).median()) if n else None})
+    return {"from": rows[0]["d"] if rows else None, "to": rows[-1]["d"] if rows else None, "skipped": skipped,
+            "weeks": SCORE_WEEKS, "dd_cut": SCORE_DD, "hy_cut": SCORE_HY, "summary": summary, "recent": rows[-6:]}
 
 
 def pad(text, width):
@@ -161,6 +326,14 @@ def render_text(rec):
         lines.append(f"{pad(r['label'], 14)}{shown:>7}   {r['change_pct']:+6.1f}%    "
                      f"{'■' if r['over'] else '□'} (기준 +{r['threshold']}%)")
     lines.append(f"→ 판정: {rec['verdict']} ({rec['hits']}/4)")
+    g = rec["regime"]
+    lines.append(f"→ 국면: {g['name']} (10년물 {_bp(t['change_bp'])}, 기준을 넘은 전이 지표 {rec['hits']}개)")
+    s = rec.get("score")
+    if s:
+        lines += ["", f"[점검] {SCORE_WEEKS}주 전 {s['d']} 판정: {s['verdict']} ({s['hits']}/4), 국면: {s['regime']}",
+                  f"이후 {SCORE_WEEKS}주 S&P 500 최대 낙폭 {s['dd']:+.1f}%{' ■' if s['fell'] else ''}, "
+                  f"HY OAS 최대 확대 {_bp(s['hy'])}{' ■' if s['credit'] else ''} "
+                  f"(■ = S&P {SCORE_DD}% 이하 또는 HY +{SCORE_HY}bp 이상)"]
     if rec["notes"]:
         lines += ["", "데이터 메모: " + "; ".join(rec["notes"])]
     return "\n".join(lines)
@@ -182,8 +355,19 @@ def save_record(rec, friday):
     path = record_path(friday)
     memo = read_memo(friday)  # keep a memo already written by hand
     path.parent.mkdir(exist_ok=True)
-    path.write_text(f"# 주간 기록 {rec['friday']}\n\n```\n{render_text(rec)}\n```\n\n메모 한 줄: {memo}\n")
+    path.write_text(f"# 주간 기록 {rec['friday']}\n\n```\n{render_text(rec)}\n```\n\n"
+                    f"자동 해설: {' '.join(rec['reading'])}\n\n메모 한 줄: {memo}\n")
     return path
+
+
+def weekly_record(series, friday):
+    """compute() plus the scorecard line for the verdict made SCORE_WEEKS earlier."""
+    rec = compute(series, friday)
+    try:
+        rec["score"] = score_week(series, friday - timedelta(weeks=SCORE_WEEKS))
+    except ValueError:
+        rec["score"] = None
+    return rec
 
 
 def build_page(series, rec, friday):
@@ -197,9 +381,11 @@ def build_page(series, rec, friday):
     for k in range(HISTORY_WEEKS - 1, -1, -1):
         f = friday - timedelta(weeks=k)
         h = compute(series, f)
-        history.append({"d": h["friday"], "hits": h["hits"], "verdict": h["verdict"],
+        history.append({"d": h["friday"], "hits": h["hits"], "verdict": h["verdict"], "regime": h["regime"]["name"],
                         "over": [r["label"] for r in h["spread"] if r["over"]], "cause": h["cause"]})
-    data = dict(rec, spark=spark, history=history, memo=read_memo(friday))
+    data = dict(rec, spark=spark, history=history, memo=read_memo(friday), scorecard=scorecard(series, friday),
+                regimes=[{"dir": d, "spreading": s, "name": n, "meaning": m} for (d, s), (n, m) in REGIMES.items()],
+                regime_bp=REGIME_BP)
     template = (ROOT / "page" / "template.html").read_text()
     payload = json.dumps(data, ensure_ascii=False).replace("</", "<\\/")
     out = ROOT / "page" / "dashboard.html"
@@ -213,13 +399,13 @@ def main():
     if friday.weekday() != 4:
         sys.exit(f"{friday.date()} is not a Friday")
     series = load_all()
-    rec = compute(series, friday)
+    rec = weekly_record(series, friday)
     print(render_text(rec))
     if "--save" in sys.argv:
         print(f"\nsaved {save_record(rec, friday)}")
         prev = friday - timedelta(weeks=1)
         if record_path(prev).exists():  # replace last week's provisional values with final ones
-            print(f"refreshed {save_record(compute(series, prev), prev)}")
+            print(f"refreshed {save_record(weekly_record(series, prev), prev)}")
     if "--page" in sys.argv:
         print(f"built {build_page(series, rec, friday)}")
 
