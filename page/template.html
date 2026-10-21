@@ -11,7 +11,7 @@
   --surface: #fbfcfd;
   --ink: #141b24;
   --ink-2: #485361;
-  --muted: #727d8a;
+  --muted: #636d79;
   --line: #dde2e8;
   --track: #e8ecf0;
   --accent: #1d5f7a;
@@ -233,6 +233,7 @@ footer .full { grid-column: 1 / -1; }
 .ai-intro p { margin: 0; color: var(--ink-2); max-width: 72ch; }
 .ai-intro p.ai-warn { font-size: 12.5px; color: var(--muted); }
 .ai-layout { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; }
+.ai-layout[hidden], .tip[hidden] { display: none; }
 .ai-steps { flex: 999 1 600px; min-width: 0; display: grid; }
 .step { display: grid; grid-template-columns: 40px minmax(0, 1fr); column-gap: 14px; }
 .rail { display: flex; flex-direction: column; align-items: center; }
@@ -256,6 +257,8 @@ footer .full { grid-column: 1 / -1; }
 .ai-row b { font-family: var(--font-data); font-weight: 500; }
 .ai-row .dim { color: var(--muted); }
 .ai-row .more { display: block; font-size: 12px; color: var(--muted); }
+.ai-row.weak .dim, .ai-row.weak .more { color: var(--ink-2); }
+.ai-row a, .ai-row .more, .ai-events a, .ai-events li { overflow-wrap: anywhere; }
 .ai-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 14px; }
 .ai-sub { display: grid; gap: 4px; align-content: start; min-width: 0; }
 .ai-sub h4 { margin: 0 0 2px; font-size: 12.5px; font-weight: 600; color: var(--ink-2); }
@@ -269,9 +272,10 @@ footer .full { grid-column: 1 / -1; }
 .bbb-big { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
 .bbb-big .v { font-family: var(--font-data); font-size: 24px; font-weight: 500; }
 .bbb-big .s { font-family: var(--font-data); font-size: 13px; color: var(--ink-2); }
-.ai-back { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; justify-content: space-between; width: 100%; margin-top: 18px; background: var(--accent-wash); border: 0; border-radius: 10px; padding: 14px 18px; min-height: 44px; font: inherit; color: var(--ink); text-align: left; cursor: pointer; }
-.ai-back:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.ai-back b { color: var(--accent); }
+.ai-back { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; background: var(--accent-wash); border-radius: 10px; padding: 14px 18px; }
+.ai-back p { margin: 0; flex: 1 1 320px; }
+.ai-back button { font: inherit; font-size: 14px; font-weight: 600; color: var(--accent); background: var(--surface); border: 1px solid var(--accent); border-radius: 8px; min-height: 44px; padding: 0 16px; cursor: pointer; }
+.ai-back button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .ai-events { flex: 1 1 280px; min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; display: grid; gap: 12px; }
 .ai-events h3 { margin: 0; font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
 .ai-events ol { margin: 0; padding: 0; list-style: none; display: grid; gap: 12px; font-size: 13.5px; }
@@ -479,7 +483,7 @@ footer .full { grid-column: 1 / -1; }
   <div class="tabpanel" id="tab-ai" role="tabpanel" aria-labelledby="tab-btn-ai" hidden>
     <section class="ai-intro" aria-labelledby="h-ai">
       <h2 id="h-ai">AI 신용 관찰</h2>
-      <p>오라클, 브로드컴, 엔비디아의 신용 위험을 봅니다. AI 기업이 번 돈보다 많이 투자하면 빚이 늘고, 빚 위험이 커지면 주식과 회사채 시장이 반응합니다. 아래로 내려가며 그 순서대로 봅니다. 이 탭의 숫자는 판정과 성적표에 넣지 않습니다.</p>
+      <p>오라클, 브로드컴, 엔비디아의 신용 위험을 봅니다. AI 기업이 번 돈보다 많이 투자하면 빚이 늘기 쉽고, 빚 위험이 커지면 주식과 회사채 시장이 반응합니다. 아래로 내려가며 그 순서대로 봅니다. 이 탭의 숫자는 판정, 국면, 성적표에 넣지 않습니다.</p>
       <p class="ai-warn" id="ai-warn"></p>
     </section>
     <p class="ai-error" id="ai-error" hidden></p>
@@ -504,11 +508,11 @@ footer .full { grid-column: 1 / -1; }
               <div class="ai-sub"><h4>⑤ 보도된 5년 CDS</h4><div class="ai-rows" id="ai-cds"></div></div>
             </div>
             <section class="finra" aria-labelledby="h-finra">
-              <div class="finra-head"><span class="badge-n" aria-hidden="true">4</span><h4 id="h-finra">회사채 실제 거래 가격</h4><span class="pill-o">직접 보기</span></div>
-              <p>CDS에 가장 가까운 무료 자료입니다. 다만 자동으로 받을 수 없어서, FINRA 웹에서 약관에 동의한 뒤 직접 확인합니다. 이 칸의 값은 매주 갱신되지 않습니다.</p>
+              <div class="finra-head"><span class="badge-n" aria-hidden="true">④</span><h4 id="h-finra">회사채 실제 거래 가격</h4><span class="pill-o">직접 보기</span></div>
+              <p>회사채 가격은 CDS처럼 시장이 그 회사의 빚을 얼마나 걱정하는지 보여 주며, 무료로 볼 수 있는 자료 가운데 CDS와 가장 비슷합니다. 다만 자동으로 받을 수 없어서, FINRA 웹에서 이용 약관에 동의한 뒤 직접 찾아봅니다. 이 칸에는 숫자를 싣지 않습니다.</p>
               <a class="btn-o" id="ai-finra" href="https://www.finra.org/finra-data/fixed-income" target="_blank" rel="noopener noreferrer">FINRA 회사채 데이터 열기</a>
             </section>
-            <p class="ai-note">부도 거리는 회사 가치가 빚 아래로 떨어지려면 얼마나 크게 흔들려야 하는지를 나타낸 모형 추정치이며, 화살표 오른쪽은 4주 전 값입니다. CDS는 보도된 수치라서 출처마다 다를 수 있습니다.</p>
+            <p class="ai-note">부도 거리는 회사 가치(시가총액 + 장기부채)가 한 해에 보통 움직이는 폭의 몇 배만큼 떨어져야 빚보다 작아지는지를 나타낸 모형 추정치입니다. 주가로 계산하므로 주가가 떨어지면 함께 낮아집니다. 화살표 오른쪽은 4주 전 값입니다. CDS는 보도된 수치라서 출처마다 다를 수 있습니다.</p>
           </article>
         </div>
         <div class="step">
@@ -517,7 +521,7 @@ footer .full { grid-column: 1 / -1; }
             <div class="step-head"><h3 id="h-ai3">주식시장이 반응하나</h3><span class="src">② 주가, S&amp;P 500 대비 4주 · 매주 자동</span></div>
             <p class="step-read" id="ai-stk-read"></p>
             <div class="ai-rows" id="ai-stk"></div>
-            <p class="ai-note">선은 S&amp;P 500 대비 상대 주가의 13주 추이입니다(13주 전 = 100). 주가는 실적이나 수주 같은 신용 밖의 이유로도 움직이므로, 1·2단계와 함께 읽습니다.</p>
+            <p class="ai-note">선은 S&amp;P 500 대비 상대 주가의 최근 13주 추이입니다(12주 전 금요일 = 100). 주가는 실적이나 수주 같은 신용 밖의 이유로도 움직이므로, 1·2단계와 함께 읽습니다.</p>
           </article>
         </div>
         <div class="step">
@@ -526,20 +530,23 @@ footer .full { grid-column: 1 / -1; }
             <div class="step-head"><h3 id="h-ai4">등급 전체로 번지나</h3><span class="src">① BBB 회사채 스프레드 · 매주 자동</span></div>
             <p class="step-read" id="ai-bbb-read"></p>
             <div class="bbb-big" id="ai-bbb"></div>
-            <p class="ai-note">오라클이 속한 BBB 등급 전체의 스프레드가 넓어지면, 걱정이 회사 하나를 넘어 등급 전체로 번지고 있다는 뜻입니다. 오라클이 투기등급으로 내려가면 주간 판독의 HY OAS에도 직접 반영됩니다.</p>
+            <p class="ai-note">BBB 스프레드는 오라클이 속한 BBB 등급 회사채 전체가 국채보다 더 내는 금리입니다. 넓어지면 걱정이 회사 하나를 넘어 등급 전체로 번지고 있을 수 있지만, 경기 걱정처럼 AI와 관계없는 이유로도 넓어집니다. BBB와 A의 차이가 함께 벌어지면 등급이 낮은 회사채에 대한 걱정이 더 빨리 커지고 있다는 뜻입니다. 세 신용평가사(무디스, S&amp;P, 피치)의 평균 등급이 투기등급으로 내려가면, 다음 월말 지수 재조정 때부터 그 회사채가 HY 지수에 들어가 주간 판독의 HY OAS에도 반영됩니다.</p>
           </article>
         </div>
-        <button type="button" class="ai-back" id="ai-back"></button>
       </div>
       <aside class="ai-events" aria-labelledby="h-events">
-        <h3 id="h-events"><span class="badge-n" aria-hidden="true">6</span>큰 사건</h3>
+        <h3 id="h-events"><span class="badge-n" aria-hidden="true">⑥</span>큰 사건</h3>
         <ol id="ai-events"></ol>
-        <p class="rule">알림 규칙: 오라클, 브로드컴, 엔비디아 가운데 한 곳이라도 투기등급으로 내려가거나 CDS가 사상 최고를 다시 쓰면, 예약 작업이 보고 첫 줄에 알립니다.</p>
+        <p class="rule">알림 규칙: 오라클, 브로드컴, 엔비디아 가운데 한 곳이라도 신용평가사(S&amp;P, 무디스, 피치) 한 곳에서 투기등급으로 내려가거나, 5년 CDS가 사상 최고를 새로 기록했다는 보도가 나오면 예약 작업이 보고 첫 줄에 [AI 신용 알림]으로 적습니다. 보도를 검색해서 찾으므로 놓칠 수 있습니다.</p>
       </aside>
+    </div>
+    <div class="ai-back">
+      <p id="ai-back-text"></p>
+      <button type="button" id="ai-back">주간 판독 보기</button>
     </div>
     <footer class="ai-foot">
       <p id="ai-sources"></p>
-      <p>이 탭은 판정과 성적표에 쓰지 않는 참고 정보입니다. 지표 해석 프레임에 관한 정리이며 투자 자문이 아닙니다.</p>
+      <p>이 탭은 판정, 국면, 성적표에 쓰지 않는 참고 정보입니다. 지표 해석 프레임에 관한 정리이며 투자 자문이 아닙니다.</p>
     </footer>
   </div>
 </div>
@@ -828,10 +835,9 @@ const fmtUsd = v => Math.round(v / 1e8).toLocaleString("en-US") + "억 달러";
 const dotDate = s => s.replaceAll("-", ".");
 function renderAI(d) {
   const ai = d.ai;
-  const back = document.getElementById("ai-back");
-  back.append(document.createTextNode(`시장 전체로 번졌는지는 주간 판독의 전이 지표가 봅니다. ${d.friday} 판정은 ${d.verdict}(${d.hits}/4), 국면은 '${d.regime.name}'입니다.`),
-    el("b", null, "주간 판독 보기"));
-  back.addEventListener("click", () => { showTab("weekly", true); window.scrollTo(0, 0); });
+  document.getElementById("ai-back-text").textContent =
+    `시장 전체로 번졌는지는 주간 판독의 전이 지표가 봅니다. ${d.friday} 판정은 ${d.verdict}(${d.hits}/4), 국면은 '${d.regime.name}'입니다.`;
+  document.getElementById("ai-back").addEventListener("click", () => { showTab("weekly", true); window.scrollTo(0, 0); });
   if (!ai || ai.error) {
     const err = document.getElementById("ai-error");
     err.textContent = `이번 갱신에서는 AI 신용 자료를 만들지 못했습니다${ai && ai.error ? ` (${ai.error})` : ""}. 주간 판독은 영향을 받지 않습니다.`;
@@ -846,7 +852,7 @@ function renderAI(d) {
   document.getElementById("ai-capex-read").textContent = ai.capex_reading;
   const cap = document.getElementById("ai-capex");
   ai.capex.forEach(r => {
-    const over = r.ratio >= 100;
+    const over = r.capex > r.ocf;
     const row = el("div", "ai-row" + (over ? " weak" : ""));
     const track = el("div", "track");
     track.setAttribute("role", "img");
@@ -858,10 +864,11 @@ function renderAI(d) {
     row.append(el("span", "nm", r.name), track, el("span", "val", Math.round(r.ratio) + "%"));
     cap.append(row);
   });
+  const debts = ai.capex.filter(r => r.debt).map(r => `${r.name} ${fmtUsd(r.debt)}(${dotDate(r.debt_date)})`);
   document.getElementById("ai-capex-note").textContent = ai.capex.length
-    ? "세로선이 100%입니다. 100%를 넘으면 번 돈보다 더 많이 투자하고 있어서, 모자란 돈을 빚으로 메웁니다. 기간은 " +
-      ai.capex.map(r => `${r.name} ${r.period}`).join(", ") + "이고, 장기부채는 " +
-      ai.capex.filter(r => r.debt).map(r => `${r.name} ${fmtUsd(r.debt)}(${r.debt_date})`).join(", ") + "입니다."
+    ? "세로선이 100%입니다. 100%를 넘으면 영업으로 번 현금보다 더 많이 투자하고 있어서, 모자란 돈을 빚, 새 주식 발행, 가진 현금으로 메워야 합니다. 기간은 " +
+      ai.capex.map(r => `${r.name} ${r.period}`).join(", ") +
+      (debts.length ? "이고, 장기부채(1년 안에 갚을 몫 포함)는 " + debts.join(", ") + "입니다." : "입니다.")
     : "";
 
   /* Step 2: distance to default, reported CDS */
@@ -901,7 +908,7 @@ function renderAI(d) {
   const scale = Math.max(15, Math.ceil(Math.max(0, ...ai.stocks.map(r => Math.abs(r.rel))) / 5) * 5);
   const weakest = ai.stocks.length ? ai.stocks.reduce((a, b) => (b.rel < a.rel ? b : a)) : null;
   ai.stocks.forEach(r => {
-    const weak = r === weakest && r.rel < 0;
+    const weak = r === weakest && r.rel <= -0.05;
     const row = el("div", "ai-row spk" + (weak ? " weak" : ""));
     const track = el("div", "track");
     track.setAttribute("role", "img");
@@ -937,7 +944,7 @@ function renderAI(d) {
 
   document.getElementById("ai-sources").textContent =
     `자료: 주가 Yahoo Finance(금요일 종가), 공시 SEC(${ai.sec_updated || "날짜 없음"} 저장), BBB 스프레드 FRED(BAMLC0A4CBBB, BAMLC0A3CA), ` +
-    `CDS와 사건은 보도 기준(${ai.news.as_of || "날짜 없음"} 갱신). 부도 거리는 시가총액, 1년 주가 변동성, 장기부채로 계산한 단순 모형 추정치입니다.`;
+    `CDS와 사건은 보도 기준(${ai.news.as_of || "날짜 없음"} 갱신). 부도 거리는 시가총액, 1년 주가 변동성, 장기부채, 2년물 금리로 계산한 단순 모형 추정치입니다.`;
 }
 
 /* Tabs: remembered per viewer; #ai opens the AI tab directly */

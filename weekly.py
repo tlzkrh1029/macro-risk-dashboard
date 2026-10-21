@@ -23,8 +23,6 @@ from pathlib import Path
 import pandas as pd
 import requests
 
-import aicredit
-
 ROOT = Path(__file__).resolve().parent
 UA = {"User-Agent": "Mozilla/5.0"}
 ACM_URL = "https://www.newyorkfed.org/medialibrary/media/research/data_indicators/ACMTermPremium.xls"
@@ -96,7 +94,12 @@ def _yahoo(ticker):
 
 
 def fred(series_id, tries=3):
-    return retry(_fred, series_id, tries=tries)
+    """FRED series with retries; a failure is re-raised without the request URL, which carries the API key."""
+    try:
+        return retry(_fred, series_id, tries=tries)
+    except requests.RequestException as e:
+        status = getattr(e.response, "status_code", "") or ""
+        raise RuntimeError(f"FRED {series_id}: {type(e).__name__} {status}".strip()) from None
 
 
 def yahoo(ticker, tries=3):
@@ -444,8 +447,9 @@ def build_page(series, rec, friday):
         h = compute(series, f)
         history.append({"d": h["friday"], "hits": h["hits"], "verdict": h["verdict"], "regime": h["regime"]["name"],
                         "over": [r["label"] for r in h["spread"] if r["over"]], "cause": h["cause"]})
-    try:  # the AI credit tab is reference only; its failure must not stop the weekly page
-        ai = aicredit.build(series, friday, fred=lambda s: fred(s, tries=2), yahoo=yahoo)
+    try:  # the AI credit tab is reference only; its failure (even an import error) must not stop the weekly page
+        import aicredit
+        ai = aicredit.build(series, friday, fred=lambda s: fred(s, tries=1), yahoo=lambda t: yahoo(t, tries=1))
     except Exception as e:  # noqa: BLE001 - only the type name: messages can carry request URLs
         ai = {"error": type(e).__name__}
     data = dict(rec, spark=spark, history=history, memo=read_memo(friday), scorecard=scorecard(series, friday), ai=ai,

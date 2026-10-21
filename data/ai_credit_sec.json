@@ -5,23 +5,65 @@
   "orcl": {
    "shares": 3023736000,
    "shares_date": "2026-09-07",
-   "debt": {"value": 130100000000, "date": "2026-05-31", "how": "sum of principal maturities"},
-   "cash": {"value": 36370000000, "date": "2026-08-31"},
-   "cashflow": {"capex": 28500000000, "ocf": 23100000000, "start": "2026-06-01", "end": "2026-08-31", "form": "10-Q"}
+   "debt": {
+    "value": 125300000000,
+    "date": "2026-08-31",
+    "how": "LongTermNotesAndLoans+NotesPayableCurrent"
+   },
+   "cash": {
+    "value": 36370000000,
+    "date": "2026-08-31"
+   },
+   "cashflow": {
+    "capex": 28500000000,
+    "ocf": 23100000000,
+    "start": "2026-06-01",
+    "end": "2026-08-31",
+    "form": "10-Q"
+   },
+   "fetched": "2026-10-21"
   },
   "avgo": {
    "shares": 4773629865,
    "shares_date": "2026-08-28",
-   "debt": {"value": 59420000000, "date": "2026-08-02", "how": "LongTermDebt"},
-   "cash": {"value": 23980000000, "date": "2026-08-02"},
-   "cashflow": {"capex": 1010000000, "ocf": 32950000000, "start": "2025-11-03", "end": "2026-08-02", "form": "10-Q"}
+   "debt": {
+    "value": 59420000000,
+    "date": "2026-08-02",
+    "how": "LongTermDebt"
+   },
+   "cash": {
+    "value": 23980000000,
+    "date": "2026-08-02"
+   },
+   "cashflow": {
+    "capex": 1010000000,
+    "ocf": 32950000000,
+    "start": "2025-11-03",
+    "end": "2026-08-02",
+    "form": "10-Q"
+   },
+   "fetched": "2026-10-21"
   },
   "nvda": {
    "shares": 24100000000,
    "shares_date": "2026-08-21",
-   "debt": {"value": 33370000000, "date": "2026-07-26", "how": "LongTermDebt"},
-   "cash": {"value": 22440000000, "date": "2026-07-26"},
-   "cashflow": {"capex": 4430000000, "ocf": 74420000000, "start": "2026-01-26", "end": "2026-07-26", "form": "10-Q"}
+   "debt": {
+    "value": 33370000000,
+    "date": "2026-07-26",
+    "how": "LongTermDebt"
+   },
+   "cash": {
+    "value": 22440000000,
+    "date": "2026-07-26"
+   },
+   "cashflow": {
+    "capex": 4430000000,
+    "ocf": 74420000000,
+    "start": "2026-01-26",
+    "end": "2026-07-26",
+    "form": "10-Q"
+   },
+   "fetched": "2026-10-21"
   }
  }
 }
