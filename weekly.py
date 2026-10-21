@@ -456,7 +456,7 @@ def build_page(series, rec, friday):
                 regimes=[{"dir": d, "spreading": s, "name": n, "meaning": m} for (d, s), (n, m) in REGIMES.items()],
                 regime_bp=REGIME_BP)
     template = (ROOT / "page" / "template.html").read_text()
-    payload = json.dumps(data, ensure_ascii=False).replace("</", "<\\/")
+    payload = json.dumps(data, ensure_ascii=False).replace("<", "\\u003c")  # news text from the web must not end the script
     out = ROOT / "page" / "dashboard.html"
     out.write_text(template.replace("/*__DATA__*/null", payload))
     return out

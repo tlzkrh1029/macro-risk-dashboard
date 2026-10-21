@@ -22,7 +22,7 @@
   --good: #0ca30c;
   --warn: #fab219;
   --crit: #d03b3b;
-  --on-good: #ffffff;
+  --on-good: #0b1f0b;
   --on-warn: #1a1a19;
   --on-crit: #ffffff;
   --font-body: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
@@ -188,6 +188,7 @@ table.regime-map { min-width: 0; font-size: 12.5px; }
 .regime-map td.now { outline: 2px solid var(--accent); outline-offset: -2px; background: var(--accent-wash); border-radius: 3px; }
 .regime-map td b { font-weight: 600; display: block; }
 .regime-map td span { color: var(--muted); }
+.regime-map td.now span { color: var(--ink-2); }
 
 /* Memo + footer */
 .memo { display: grid; gap: 4px; padding: 0 2px; }
@@ -226,6 +227,7 @@ footer .full { grid-column: 1 / -1; }
 .tabs button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 4px; }
 .tabpanel { display: grid; gap: 22px; min-width: 0; }
 .tabpanel[hidden] { display: none; }
+[hidden] { display: none !important; }
 
 /* AI credit tab: four steps from cause to market, events on the side */
 .ai-intro { display: grid; gap: 8px; }
@@ -266,9 +268,9 @@ footer .full { grid-column: 1 / -1; }
 .finra-head { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
 .finra h4 { margin: 0; font-size: 15px; font-weight: 600; }
 .finra p { margin: 0; font-size: 13px; color: var(--ink-2); }
-.badge-n { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 6px; background: var(--accent-wash); color: var(--accent); font-size: 12px; font-weight: 700; }
+.badge-n { color: var(--accent); font-size: 18px; font-weight: 400; line-height: 1; }
 .pill-o { font-size: 11.5px; font-weight: 600; color: var(--ink-2); border: 1px solid var(--line); padding: 0 7px; border-radius: 999px; }
-.btn-o { justify-self: start; display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border: 1px solid var(--accent); border-radius: 8px; font-weight: 600; font-size: 14px; text-decoration: none; color: var(--accent); }
+.btn-o { justify-self: start; display: inline-flex; align-items: center; min-height: 44px; padding: 8px 16px; line-height: 1.3; word-break: keep-all; border: 1px solid var(--accent); border-radius: 8px; font-weight: 600; font-size: 14px; text-decoration: none; color: var(--accent); }
 .bbb-big { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
 .bbb-big .v { font-family: var(--font-data); font-size: 24px; font-weight: 500; }
 .bbb-big .s { font-family: var(--font-data); font-size: 13px; color: var(--ink-2); }
@@ -483,7 +485,7 @@ footer .full { grid-column: 1 / -1; }
   <div class="tabpanel" id="tab-ai" role="tabpanel" aria-labelledby="tab-btn-ai" hidden>
     <section class="ai-intro" aria-labelledby="h-ai">
       <h2 id="h-ai">AI 신용 관찰</h2>
-      <p>오라클, 브로드컴, 엔비디아의 신용 위험을 봅니다. AI 기업이 번 돈보다 많이 투자하면 빚이 늘기 쉽고, 빚 위험이 커지면 주식과 회사채 시장이 반응합니다. 아래로 내려가며 그 순서대로 봅니다. 이 탭의 숫자는 판정, 국면, 성적표에 넣지 않습니다.</p>
+      <p id="ai-intro-text">오라클, 브로드컴, 엔비디아의 신용 위험을 봅니다. AI 기업이 번 돈보다 많이 투자하면 빚이 늘기 쉽고, 빚 위험이 커지면 주식과 회사채 시장이 반응합니다. 아래로 내려가며 그 순서대로 봅니다. 동그라미 숫자(①~⑦)는 지표 번호이고, 화면은 원인에서 결과의 순서로 놓았습니다. 이 탭의 숫자는 판정, 국면, 성적표에 넣지 않습니다.</p>
       <p class="ai-warn" id="ai-warn"></p>
     </section>
     <p class="ai-error" id="ai-error" hidden></p>
@@ -512,7 +514,7 @@ footer .full { grid-column: 1 / -1; }
               <p>회사채 가격은 CDS처럼 시장이 그 회사의 빚을 얼마나 걱정하는지 보여 주며, 무료로 볼 수 있는 자료 가운데 CDS와 가장 비슷합니다. 다만 자동으로 받을 수 없어서, FINRA 웹에서 이용 약관에 동의한 뒤 직접 찾아봅니다. 이 칸에는 숫자를 싣지 않습니다.</p>
               <a class="btn-o" id="ai-finra" href="https://www.finra.org/finra-data/fixed-income" target="_blank" rel="noopener noreferrer">FINRA 회사채 데이터 열기</a>
             </section>
-            <p class="ai-note">부도 거리는 회사 가치(시가총액 + 장기부채)가 한 해에 보통 움직이는 폭의 몇 배만큼 떨어져야 빚보다 작아지는지를 나타낸 모형 추정치입니다. 주가로 계산하므로 주가가 떨어지면 함께 낮아집니다. 화살표 오른쪽은 4주 전 값입니다. CDS는 보도된 수치라서 출처마다 다를 수 있습니다.</p>
+            <p class="ai-note">부도 거리는 회사 가치(시가총액 + 장기부채)가 한 해에 보통 움직이는 폭의 몇 배만큼 떨어져야 빚보다 작아지는지를 나타낸 모형 추정치입니다. 주가로 계산하므로 주가가 떨어지면 함께 낮아집니다. 화살표 오른쪽은 4주 전 주가와 2년물 금리로 다시 계산한 값이며, 부채와 주식 수는 지금 공시 값을 그대로 씁니다. CDS는 보도된 수치라서 출처마다 다를 수 있습니다.</p>
           </article>
         </div>
         <div class="step">
@@ -521,7 +523,7 @@ footer .full { grid-column: 1 / -1; }
             <div class="step-head"><h3 id="h-ai3">주식시장이 반응하나</h3><span class="src">② 주가, S&amp;P 500 대비 4주 · 매주 자동</span></div>
             <p class="step-read" id="ai-stk-read"></p>
             <div class="ai-rows" id="ai-stk"></div>
-            <p class="ai-note">선은 S&amp;P 500 대비 상대 주가의 최근 13주 추이입니다(12주 전 금요일 = 100). 주가는 실적이나 수주 같은 신용 밖의 이유로도 움직이므로, 1·2단계와 함께 읽습니다.</p>
+            <p class="ai-note" id="ai-stk-note">선은 S&amp;P 500 대비 상대 주가의 최근 13주 추이입니다(12주 전 금요일 = 100). 주가는 실적이나 수주 같은 신용 밖의 이유로도 움직이므로, 1·2단계와 함께 읽습니다.</p>
           </article>
         </div>
         <div class="step">
@@ -571,7 +573,7 @@ const svgEl = (tag, attrs) => {
   return n;
 };
 const fmtRate = v => v.toFixed(2);
-const fmtBp = v => (v >= 0 ? "+" : "−") + Math.abs(Math.round(v)) + "bp";
+const fmtBp = v => { const r = Math.round(v); return (r >= 0 ? "+" : "−") + Math.abs(r) + "bp"; };
 const fmtPct = v => (v >= 0 ? "+" : "−") + Math.abs(v).toFixed(1) + "%";
 function fmtLevel(r, v) { return r.unit === "bp" ? Math.round(v) + "bp" : v.toFixed(1); }
 const shortDate = d => d.slice(5).replace("-", ".");
@@ -830,7 +832,7 @@ function render(d) {
 }
 
 /* AI credit tab. Every value comes from DATA.ai; nothing here feeds the verdict. */
-const fmtPP = v => (v >= 0 ? "+" : "−") + Math.abs(v).toFixed(1) + "%p";
+const fmtPP = v => { const r = Math.round(v * 10) / 10; return (r >= 0 ? "+" : "−") + Math.abs(r).toFixed(1) + "%p"; };
 const fmtUsd = v => Math.round(v / 1e8).toLocaleString("en-US") + "억 달러";
 const dotDate = s => s.replaceAll("-", ".");
 function renderAI(d) {
@@ -840,7 +842,8 @@ function renderAI(d) {
   document.getElementById("ai-back").addEventListener("click", () => { showTab("weekly", true); window.scrollTo(0, 0); });
   if (!ai || ai.error) {
     const err = document.getElementById("ai-error");
-    err.textContent = `이번 갱신에서는 AI 신용 자료를 만들지 못했습니다${ai && ai.error ? ` (${ai.error})` : ""}. 주간 판독은 영향을 받지 않습니다.`;
+    err.textContent = `이번 갱신에서는 AI 신용 자료를 만들지 못했습니다. 주간 판독은 영향을 받지 않습니다.${ai && ai.error ? ` 오류 종류: ${ai.error}` : ""}`;
+    document.getElementById("ai-intro-text").hidden = true;
     err.hidden = false;
     document.getElementById("ai-body").hidden = true;
     return;
@@ -868,8 +871,11 @@ function renderAI(d) {
   document.getElementById("ai-capex-note").textContent = ai.capex.length
     ? "세로선이 100%입니다. 100%를 넘으면 영업으로 번 현금보다 더 많이 투자하고 있어서, 모자란 돈을 빚, 새 주식 발행, 가진 현금으로 메워야 합니다. 기간은 " +
       ai.capex.map(r => `${r.name} ${r.period}`).join(", ") +
-      (debts.length ? "이고, 장기부채(1년 안에 갚을 몫 포함)는 " + debts.join(", ") + "입니다." : "입니다.")
+      (debts.length ? "이고, 장기부채(1년 안에 갚을 몫 포함)는 " + debts.join(", ") + "입니다." : "입니다.") +
+      " 분기 공시의 현금흐름은 회계연도 첫날부터 쌓은 값이라서 회사마다 기간이 다릅니다."
     : "";
+  cap.hidden = !ai.capex.length;
+  document.getElementById("ai-capex-note").hidden = !ai.capex.length;
 
   /* Step 2: distance to default, reported CDS */
   document.getElementById("ai-dd-read").textContent = ai.dd_reading;
@@ -884,7 +890,8 @@ function renderAI(d) {
   });
   if (!ai.dd.length) ddBox.append(el("p", "ai-note", "계산하지 못했습니다."));
   const cdsBox = document.getElementById("ai-cds");
-  ai.companies.forEach(c => {
+  if (ai.news.warning) cdsBox.append(el("p", "ai-note", ai.news.warning + "."));
+  else ai.companies.forEach(c => {
     const x = ai.news.items.find(i => i.key === c.key);
     const row = el("div", "ai-row txt" + (x && x.fresh && low && low.key === c.key && x.cds_bp != null ? " weak" : ""));
     const v = el("span");
@@ -922,6 +929,8 @@ function renderAI(d) {
       sparkline(r.spark, v => v.toFixed(1), `${r.name} S&P 500 대비 상대 주가`));
     stk.append(row);
   });
+  stk.hidden = !ai.stocks.length;
+  document.getElementById("ai-stk-note").hidden = !ai.stocks.length;
 
   /* Step 4: BBB spread */
   document.getElementById("ai-bbb-read").textContent = ai.bbb_reading;
@@ -931,6 +940,7 @@ function renderAI(d) {
       el("span", "s", `4주 ${fmtBp(ai.bbb.chg)} · BBB와 A 차이 ${Math.round(ai.bbb.gap)}bp (4주 ${fmtBp(ai.bbb.gap_chg)})`),
       sparkline(ai.bbb.spark, v => Math.round(v) + "bp", "BBB 스프레드"));
   }
+  bbb.hidden = !ai.bbb;
 
   /* Events */
   const ev = document.getElementById("ai-events");
@@ -943,13 +953,13 @@ function renderAI(d) {
   if (!ai.news.events.length) ev.append(el("li", null, "기록된 사건이 없습니다."));
 
   document.getElementById("ai-sources").textContent =
-    `자료: 주가 Yahoo Finance(금요일 종가), 공시 SEC(${ai.sec_updated || "날짜 없음"} 저장), BBB 스프레드 FRED(BAMLC0A4CBBB, BAMLC0A3CA), ` +
-    `CDS와 사건은 보도 기준(${ai.news.as_of || "날짜 없음"} 갱신). 부도 거리는 시가총액, 1년 주가 변동성, 장기부채, 2년물 금리로 계산한 단순 모형 추정치입니다.`;
+    `자료: 주가 Yahoo Finance(금요일 종가), 공시 SEC(${ai.sec_updated ? ai.sec_updated + " 저장" : "저장 날짜 없음"}), BBB 스프레드 FRED(BAMLC0A4CBBB, BAMLC0A3CA), ` +
+    `CDS와 사건은 보도 기준(${ai.news.as_of ? ai.news.as_of + " 갱신" : "갱신 날짜 없음"}). 부도 거리는 시가총액, 1년 주가 변동성, 장기부채, 2년물 금리로 계산한 단순 모형 추정치입니다.`;
 }
 
-/* Tabs: remembered per viewer; #ai opens the AI tab directly */
+/* Tabs: the viewer's own choice is remembered; #ai opens the AI tab without changing that choice */
 const TABS = { weekly: ["tab-btn-weekly", "tab-weekly"], ai: ["tab-btn-ai", "tab-ai"] };
-function showTab(name, focus) {
+function showTab(name, focus, remember = true) {
   Object.entries(TABS).forEach(([key, [btn, panel]]) => {
     const on = key === name;
     const b = document.getElementById(btn);
@@ -959,7 +969,7 @@ function showTab(name, focus) {
     if (on && focus) b.focus();
   });
   hideTip();
-  try { localStorage.setItem("tab", name); } catch (e) { /* storage blocked: the default tab is fine */ }
+  if (remember) try { localStorage.setItem("tab", name); } catch (e) { /* storage blocked: the default tab is fine */ }
 }
 document.getElementById("tab-btn-weekly").addEventListener("click", () => showTab("weekly"));
 document.getElementById("tab-btn-ai").addEventListener("click", () => showTab("ai"));
@@ -972,6 +982,10 @@ document.getElementById("tabs").addEventListener("keydown", e => {
 if (DATA) render(DATA);
 let startTab = location.hash === "#ai" ? "ai" : "weekly";
 try { if (location.hash !== "#ai" && localStorage.getItem("tab") === "ai") startTab = "ai"; } catch (e) { /* ignore */ }
-showTab(startTab);
-window.addEventListener("scroll", hideTip, { passive: true });
+showTab(startTab, false, false);
+window.addEventListener("scroll", () => {  /* keep a keyboard-focused tooltip in place when focus scrolls the page */
+  const a = document.activeElement;
+  if (a && a.matches && a.matches(".spark, .cell")) a.dispatchEvent(new Event("focus"));
+  else hideTip();
+}, { passive: true });
 </script>

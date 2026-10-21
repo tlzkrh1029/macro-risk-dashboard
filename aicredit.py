@@ -116,11 +116,18 @@ def load_sec():
         cache = None
     if not isinstance(cache, dict) or not isinstance(cache.get("companies"), dict):
         cache = None
+    bad = []
+    if cache:  # a hand-edited entry of the wrong shape drops that company only
+        for key, name, _, _ in COMPANIES:
+            if key in cache["companies"] and not _sec_entry_ok(cache["companies"][key]):
+                del cache["companies"][key]
+                bad.append(name)
     ua = os.environ.get("SEC_USER_AGENT", "").strip()
+    note = f"; 형식이 맞지 않아 뺀 공시 값: {', '.join(bad)}" if bad else ""
     if not ua:
         if cache is None:
             return {"companies": {}}, "저장된 SEC 공시 값이 없습니다"
-        return cache, f"SEC 자동 갱신이 설정되지 않아 {cache.get('updated', '이전')}에 저장한 공시 값을 씁니다"
+        return cache, f"SEC 자동 갱신이 설정되지 않아 {cache.get('updated', '이전')}에 저장한 공시 값을 씁니다{note}"
     companies, failed, changed = dict((cache or {}).get("companies", {})), [], False
     for key, name, _, cik in COMPANIES:
         try:
@@ -140,7 +147,25 @@ def load_sec():
             SEC_CACHE.write_text(json.dumps(cache, ensure_ascii=False, indent=1) + "\n")
         except OSError:
             pass
-    return cache, (f"SEC에서 받지 못해 저장된 값을 씁니다: {', '.join(failed)}" if failed else None)
+    kept = [n for k, n, _, _ in COMPANIES if n in failed and k in companies]
+    lost = [n for n in failed if n not in kept]
+    msgs = ([f"SEC에서 받지 못해 저장된 값을 씁니다: {', '.join(kept)}"] if kept else []) + \
+           ([f"SEC에서 받지 못했고 저장된 값도 없습니다: {', '.join(lost)}"] if lost else [])
+    return cache, ("; ".join(msgs) + note) if msgs else (note[2:] or None)
+
+
+def _sec_entry_ok(c):
+    num = (int, float)
+    if not isinstance(c, dict):
+        return False
+    cf = c.get("cashflow")
+    if cf is not None and not (isinstance(cf, dict) and isinstance(cf.get("capex"), num) and isinstance(cf.get("ocf"), num)
+                               and isinstance(cf.get("start"), str) and isinstance(cf.get("end"), str)):
+        return False
+    debt = c.get("debt")
+    if debt is not None and not (isinstance(debt, dict) and isinstance(debt.get("value"), num) and isinstance(debt.get("date"), str)):
+        return False
+    return c.get("shares") is None or isinstance(c.get("shares"), num)
 
 
 # --- reported CDS and events (written by the weekly routine from news; never computed here) ---
@@ -172,34 +197,40 @@ def load_news(friday):
     if not isinstance(raw, dict):
         return dict(empty, warning="보도 자료 파일의 형식이 맞지 않습니다")
     keys = {c[0] for c in COMPANIES}
-    latest = {}
+    valid, skipped = {}, 0
     for x in raw.get("items") if isinstance(raw.get("items"), list) else []:
-        if not (isinstance(x, dict) and isinstance(x.get("key"), str) and x["key"] in keys):
+        bp = x.get("cds_bp") if isinstance(x, dict) else None
+        day = _day(x.get("date")) if isinstance(x, dict) else None
+        if not (isinstance(x, dict) and isinstance(x.get("key"), str) and x["key"] in keys
+                and _https(x.get("url")) and isinstance(x.get("source"), str) and x["source"].strip()
+                and (bp is None or (not isinstance(bp, bool) and isinstance(bp, (int, float)) and 0 < bp < 5000))
+                and isinstance(x.get("record_high", False), bool) and day is not None):
+            skipped += 1
             continue
-        if not (_https(x.get("url")) and isinstance(x.get("source"), str) and x["source"].strip()):
+        if (friday - day).days < -4:  # reported after this Friday's Tuesday run: not part of this week's page
             continue
-        bp = x.get("cds_bp")
-        if bp is not None and (isinstance(bp, bool) or not isinstance(bp, (int, float)) or not 0 < bp < 5000):
-            continue
-        day = _day(x.get("date"))
-        if day is None or (friday - day).days < -4:  # undated, or reported after this Friday's Tuesday run
-            continue
-        item = {"key": x["key"], "cds_bp": bp, "date": str(day.date()), "record_high": x.get("record_high") is True,
-                "source": x["source"].strip()[:120], "url": x["url"],
-                "note": x["note"][:200] if isinstance(x.get("note"), str) else "",
-                "fresh": (friday - day).days <= NEWS_FRESH_DAYS}
-        if x["key"] not in latest or item["date"] > latest[x["key"]]["date"]:
-            latest[x["key"]] = item
+        valid.setdefault(x["key"], []).append(
+            {"key": x["key"], "cds_bp": bp, "date": str(day.date()), "record_high": x.get("record_high") is True,
+             "source": x["source"].strip()[:120], "url": x["url"],
+             "note": x["note"][:200] if isinstance(x.get("note"), str) else "",
+             "fresh": (friday - day).days <= NEWS_FRESH_DAYS})
+    items = []
+    for reports in valid.values():  # newest report with a number; a newer one without a number never hides it
+        numbered = [r for r in reports if r["cds_bp"] is not None]
+        items.append(max(numbered or reports, key=lambda r: r["date"]))
     last = str((friday + timedelta(days=4)).date())
     events = []
     for e in raw.get("events") if isinstance(raw.get("events"), list) else []:
-        if (isinstance(e, dict) and isinstance(e.get("text"), str) and e["text"].strip() and _https(e.get("url"))
-                and isinstance(e.get("date"), str) and re.fullmatch(r"\d{4}-\d{2}(-\d{2})?", e["date"]) and e["date"] <= last):
+        if not (isinstance(e, dict) and isinstance(e.get("text"), str) and e["text"].strip() and _https(e.get("url"))
+                and isinstance(e.get("date"), str) and re.fullmatch(r"\d{4}-\d{2}(-\d{2})?", e["date"])):
+            skipped += 1
+        elif e["date"] <= last:
             events.append({"date": e["date"], "text": e["text"].strip()[:200], "url": e["url"]})
     events.sort(key=lambda e: e["date"], reverse=True)
     as_of = _day(raw.get("as_of"))
     return {"as_of": str(as_of.date()) if as_of is not None else None,
-            "items": sorted(latest.values(), key=lambda i: i["date"], reverse=True), "events": events[:8], "warning": None}
+            "items": sorted(items, key=lambda i: i["date"], reverse=True), "events": events[:8], "warning": None,
+            "skipped": skipped}
 
 
 # --- market data ---
@@ -217,6 +248,7 @@ def distance_to_default(prices, shares, debt, rate, d):
     Bharath and Shumway's (2008) volatility approximation, but with a risk-free drift (the 2y Treasury yield)
     instead of the past-year stock return, and total debt as the default point instead of current + half long-term.
     """
+    on_or_before(prices, d)  # raises when the series has no close in this Friday's week
     closes = prices.loc[:d].iloc[-253:]
     sigma_e = closes.apply(math.log).diff().dropna().std() * math.sqrt(252)
     equity = shares * float(closes.iloc[-1])
@@ -228,8 +260,11 @@ def _won(v):
     return f"{round(v / 1e8):,}억 달러"
 
 
-def _signed(v):
-    return ("+" if v >= 0 else "−") + f"{abs(v):.1f}"
+def _flag_day(s, friday, what, out):
+    """Note a value taken from before the Friday (Saturday runs: FRED next-day series stop at Thursday)."""
+    used = s.loc[friday - timedelta(days=4):friday].index[-1]
+    if used != friday:
+        out["warnings"].append(f"{what} 금요일 값이 없어 {used.month}/{used.day} 값 사용")
 
 
 def _period(start, end):
@@ -282,19 +317,20 @@ def _capex_block(sec, out):
     names = [r["name"] for r in rows]
     over = [r for r in rows if r["capex"] > r["ocf"]]
     if not rows:
-        text = "" if minus else "공시 자료를 받지 못했습니다."
+        text = "" if minus else "설비투자와 영업현금흐름 공시 값이 없습니다."
     elif not over:
-        text = (f"{_group(names)} 모두" if len(rows) > 1 else _topic(names[0])) + " 설비투자가 영업현금흐름보다 적습니다."
+        text = (f"{_group(names)} 모두" if len(rows) > 1 else _topic(names[0])) + " 설비투자가 영업현금흐름보다 적었습니다."
     else:
         top = max(over, key=lambda r: r["ratio"])
         if len(over) == 1:
-            lead = f"{over[0]['name']}만" if len(rows) > 1 else _topic(over[0]["name"])
+            lead = f"{over[0]['name']}만" if len(rows) > 1 and not minus else _topic(over[0]["name"])
         else:
             lead = f"{_group([r['name'] for r in over])} 모두"
         text = (f"{lead} 설비투자가 영업현금흐름보다 많았습니다. {'비율이 가장 높은 ' if len(over) > 1 else ''}"
-                f"{top['name']}의 {top['period']} 설비투자는 {_won(top['capex'])}로, 영업현금흐름 {_won(top['ocf'])}보다 많았습니다.")
+                f"{top['name']}의 {top['period']} 설비투자는 {_won(top['capex'])}, 영업현금흐름은 {_won(top['ocf'])}였습니다.")
     if minus:
-        text = (text + " " if text else "") + f"{_topic(_and(minus))} 영업현금흐름이 0 이하라서 비율을 계산하지 않았습니다."
+        text = (text + " " if text else "") + (f"{_topic(_and(minus))} 영업현금흐름이 0 이하라서 비율을 계산하지 않았습니다. "
+                                               "영업으로 현금을 벌지 못했으므로 설비투자 전부를 빚, 새 주식 발행, 가진 현금으로 메워야 했습니다.")
     out["capex_reading"] = text
 
 
@@ -304,10 +340,12 @@ def _stocks_block(series, friday, prior, fridays, prices, out):
         if spx is None:
             raise ValueError("no S&P 500 series")
         spx_chg = (on_or_before(spx, friday) / on_or_before(spx, prior) - 1) * 100
+        for f in fridays:  # one check here, so an S&P gap is not blamed on each company
+            on_or_before(spx, f)
         out["spx_chg"] = spx_chg
     except ValueError:
-        out["warnings"].append("S&P 500 자료가 없어 주가를 비교하지 못했습니다")
-        out["stocks"], out["stocks_reading"] = [], "주가 자료를 비교하지 못했습니다."
+        out["warnings"].append("S&P 500 자료에 빠진 기간이 있어 주가를 시장과 비교하지 못했습니다")
+        out["stocks"], out["stocks_reading"] = [], "S&P 500 자료가 없어 주가를 시장과 비교하지 못했습니다."
         return
     for key, name, _, _ in COMPANIES:
         if key not in prices:
@@ -318,7 +356,7 @@ def _stocks_block(series, friday, prior, fridays, prices, out):
             base = on_or_before(p, fridays[0]) / on_or_before(spx, fridays[0])
             spark = [{"d": str(f.date()), "v": on_or_before(p, f) / on_or_before(spx, f) / base * 100} for f in fridays]
         except ValueError:
-            out["warnings"].append(f"{name} 주가에 비어 있는 주가 있어 비교하지 못했습니다")
+            out["warnings"].append(f"{name} 주가 자료에 빠진 기간이 있어 S&P 500과 비교하지 못했습니다")
             continue
         stocks.append({"key": key, "name": name, "chg": chg, "rel": chg - spx_chg, "spark": spark})
     out["stocks"] = stocks
@@ -328,7 +366,9 @@ def _stocks_block(series, friday, prior, fridays, prices, out):
     names = [r["name"] for r in stocks]
     weak = min(stocks, key=lambda r: r["rel"])
     lag = [r for r in stocks if r["rel"] <= -0.05]
-    head = f"최근 4주 동안 S&P 500은 {_signed(spx_chg)}%였고, "
+    move = ("거의 변하지 않았습니다" if abs(spx_chg) < 0.05 else
+            f"{abs(spx_chg):.1f}% {'올랐습니다' if spx_chg > 0 else '내렸습니다'}")
+    head = f"최근 4주 동안 S&P 500은 {move}. "
     if not lag:
         tail = (f"{_group(names)} 모두" if len(stocks) > 1 else _topic(names[0])) + " 시장과 같거나 시장보다 좋았습니다."
     elif len(lag) == len(stocks) > 1:
@@ -343,6 +383,7 @@ def _dd_block(series, friday, prior, sec, prices, news, out):
     dd = []
     try:
         rate, rate_prior = on_or_before(series["dgs2"], friday) / 100, on_or_before(series["dgs2"], prior) / 100
+        _flag_day(series["dgs2"], friday, "부도 거리: 2년물", out)
     except (ValueError, KeyError):
         out["warnings"].append("2년물 금리 자료가 없어 부도 거리를 계산하지 못했습니다")
         rate = None
@@ -394,6 +435,7 @@ def _bbb_block(friday, prior, fridays, fred, out):
         out["bbb_reading"] = "이번 갱신에서는 FRED에서 BBB 스프레드를 받지 못했습니다."
         out["warnings"].append("BBB 스프레드를 받지 못했습니다")
         return
+    _flag_day(bbb, friday, "BBB 스프레드:", out)
     out["bbb"] = {"value": v1 * 100, "chg": (v1 - v0) * 100, "gap": (v1 - a1) * 100, "gap_chg": ((v1 - a1) - (v0 - a0)) * 100,
                   "spark": spark}
     chg = round(out["bbb"]["chg"])
@@ -427,6 +469,8 @@ def build(series, friday, fred, yahoo):
         news = {"as_of": None, "items": [], "events": [], "warning": "보도 자료 파일의 형식이 맞지 않습니다"}
     if news["warning"]:
         out["warnings"].append(news["warning"])
+    if news.get("skipped"):
+        out["warnings"].append(f"형식이 맞지 않는 보도 항목 {news['skipped']}개를 뺐습니다")
     out["news"] = news
     _dd_block(series, friday, prior, sec, prices, news, out)
     _stocks_block(series, friday, prior, fridays, prices, out)

@@ -18,7 +18,7 @@
    "record_high": true,
    "source": "블룸버그 보도 (Gate 인용)",
    "url": "https://www.gate.com/news/detail/ORCL/oracle-broadcom-cds-spreads-widen-as-ai-debt-hits-500b-in-2026-24838427",
-   "note": "10월 8~9일 사상 최고"
+   "note": "10월 8일과 9일 모두 이 값이었습니다."
   },
   {
    "key": "nvda",
@@ -27,7 +27,7 @@
    "record_high": true,
    "source": "Yahoo Finance",
    "url": "https://finance.yahoo.com/markets/stocks/articles/ai-credit-default-insurance-costs-140727215.html",
-   "note": "오라클, 코어위브보다 훨씬 낮은 수준이라는 보도이며, 수치는 나오지 않았습니다."
+   "note": "기사는 만기를 밝히지 않았고, 오라클과 코어위브보다는 훨씬 낮다고 적었습니다."
   }
  ],
  "events": [
@@ -38,7 +38,7 @@
   },
   {
    "date": "2026-10-15",
-   "text": "엔비디아 5년 CDS도 사상 최고 수준으로 넓어졌다는 보도가 나왔습니다(수치 없음). 오라클, 코어위브보다는 훨씬 낮습니다.",
+   "text": "엔비디아 CDS도 사상 최고 수준으로 넓어졌다는 보도가 나왔습니다. 기사에 만기와 수치는 없고, 오라클과 코어위브보다는 훨씬 낮다고 적었습니다.",
    "url": "https://finance.yahoo.com/markets/stocks/articles/ai-credit-default-insurance-costs-140727215.html"
   },
   {
@@ -53,7 +53,7 @@
   },
   {
    "date": "2026-02-02",
-   "text": "오라클이 올해 450억~500억 달러를 빚과 주식으로 조달하겠다고 밝힌 뒤 5년 CDS가 17% 내렸습니다.",
+   "text": "오라클이 2026년에 450억~500억 달러를 빚과 주식으로 조달하겠다고 밝힌 뒤 5년 CDS가 17% 내렸습니다.",
    "url": "https://www.cnbc.com/2026/02/02/oracles-credit-default-swaps-are-plummeting-after-financing-plans.html"
   }
  ]
