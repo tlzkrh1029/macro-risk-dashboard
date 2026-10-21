@@ -6,5 +6,6 @@
 
 - **기준 문서**: [`DASHBOARD.md`](DASHBOARD.md)
 - **화면**: [claude.ai 아티팩트](https://claude.ai/artifact/9RBKXFqm3J2NTvFSxBtVb7) (비공개, 소유자만 열람). `python weekly.py --page`로 만든 `page/dashboard.html`을 올립니다
+- **AI 신용 관찰 탭**: [`aicredit.py`](aicredit.py), [`data/`](data/). 오라클·브로드컴·엔비디아의 신용 위험을 참고로 보여 주며 판정에는 쓰지 않습니다(`DASHBOARD.md` 6절)
 - **주간 기록**: [`records/`](records/). `python weekly.py --save`로 채웁니다(`FRED_API_KEY` 필요)
 - **이전 작업 기록**: [`archive/`](archive/). 처음 설계(v1), 개정안(v2), 검토 보고서와 검증 스크립트를 참고용으로 보존합니다.

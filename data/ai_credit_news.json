@@ -1,0 +1,55 @@
+{
+ "as_of": "2026-10-21",
+ "note": "Reported 5-year CDS levels and credit events for the AI credit tab. Written weekly by the scheduled task from news; only numbers stated in a linked source.",
+ "items": [
+  {
+   "key": "orcl",
+   "cds_bp": 288,
+   "date": "2026-10-15",
+   "record_high": true,
+   "source": "S&P Global·LSEG 집계 (Securitas Global 보도)",
+   "url": "https://www.securitasglobal.com/risk-perspectives/oracle-cds-record-288-basis-points-ai-debt/",
+   "note": "다른 보도는 322bp(모건스탠리 자료 인용)로 적었습니다."
+  },
+  {
+   "key": "avgo",
+   "cds_bp": 136,
+   "date": "2026-10-09",
+   "record_high": true,
+   "source": "블룸버그 보도 (Gate 인용)",
+   "url": "https://www.gate.com/news/detail/ORCL/oracle-broadcom-cds-spreads-widen-as-ai-debt-hits-500b-in-2026-24838427",
+   "note": "10월 8~9일 사상 최고"
+  },
+  {
+   "key": "nvda",
+   "cds_bp": null,
+   "date": "2026-10-16",
+   "record_high": false,
+   "source": "Yahoo Finance",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/ai-credit-default-insurance-costs-140727215.html",
+   "note": "사상 최고 수준이지만 오라클보다 훨씬 낮다는 보도이며, 수치는 나오지 않았습니다."
+  }
+ ],
+ "events": [
+  {
+   "date": "2026-10-15",
+   "text": "오라클 5년 CDS가 사상 최고인 288bp를 기록했습니다.",
+   "url": "https://www.securitasglobal.com/risk-perspectives/oracle-cds-record-288-basis-points-ai-debt/"
+  },
+  {
+   "date": "2026-10-08",
+   "text": "브로드컴 5년 CDS가 사상 최고인 136bp를 기록했습니다.",
+   "url": "https://www.gate.com/news/detail/ORCL/oracle-broadcom-cds-spreads-widen-as-ai-debt-hits-500b-in-2026-24838427"
+  },
+  {
+   "date": "2026-07",
+   "text": "S&P가 오라클 등급을 투기등급 바로 위인 BBB-로 낮췄습니다.",
+   "url": "https://www.securitasglobal.com/risk-perspectives/oracle-cds-record-288-basis-points-ai-debt/"
+  },
+  {
+   "date": "2026-02-02",
+   "text": "오라클이 500억 달러 조달 계획을 내놓은 뒤 CDS가 17% 내렸습니다.",
+   "url": "https://www.cnbc.com/2026/02/02/oracles-credit-default-swaps-are-plummeting-after-financing-plans.html"
+  }
+ ]
+}

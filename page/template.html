@@ -219,6 +219,71 @@ footer h3 { margin: 0 0 4px; font-size: 12.5px; font-weight: 600; color: var(--i
 footer p { margin: 0; }
 footer .full { grid-column: 1 / -1; }
 
+/* Tabs: weekly readout | AI credit watch */
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); }
+.tabs button { font: inherit; font-size: 14px; font-weight: 600; color: var(--muted); background: none; border: 0; border-bottom: 2px solid transparent; padding: 10px 14px; min-height: 44px; cursor: pointer; }
+.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+.tabs button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 4px; }
+.tabpanel { display: grid; gap: 22px; min-width: 0; }
+.tabpanel[hidden] { display: none; }
+
+/* AI credit tab: four steps from cause to market, events on the side */
+.ai-intro { display: grid; gap: 8px; }
+.ai-intro h2 { font-size: 22px; font-weight: 700; }
+.ai-intro p { margin: 0; color: var(--ink-2); max-width: 72ch; }
+.ai-intro p.ai-warn { font-size: 12.5px; color: var(--muted); }
+.ai-layout { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; }
+.ai-steps { flex: 999 1 600px; min-width: 0; display: grid; }
+.step { display: grid; grid-template-columns: 40px minmax(0, 1fr); column-gap: 14px; }
+.rail { display: flex; flex-direction: column; align-items: center; }
+.rail .num { display: inline-grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--accent); color: var(--surface); font-weight: 700; flex: none; }
+.rail .line { flex: 1; width: 2px; background: var(--line); margin-top: 4px; }
+.step-card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; margin-bottom: 18px; display: grid; gap: 12px; min-width: 0; }
+.step-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; }
+.step-head h3 { margin: 0; font-size: 17px; font-weight: 700; }
+.step-head .src { font-size: 12.5px; color: var(--muted); }
+.step-read { margin: 0; font-weight: 600; }
+.ai-note { margin: 0; font-size: 12px; color: var(--muted); }
+.ai-rows { display: grid; gap: 4px; }
+.ai-row { display: grid; grid-template-columns: 72px minmax(0, 1fr) 64px; gap: 10px; align-items: center; padding: 5px 8px; border-radius: 6px; min-width: 0; }
+.ai-row.spk { grid-template-columns: 72px minmax(0, 1fr) 64px 104px; }
+.ai-row.txt { grid-template-columns: 72px minmax(0, 1fr); align-items: baseline; font-size: 13.5px; }
+.ai-row.weak { background: rgba(250, 178, 25, 0.14); }
+.ai-row .nm { font-weight: 600; font-size: 14px; }
+.ai-row .val { font-family: var(--font-data); font-variant-numeric: tabular-nums; font-size: 13px; text-align: right; }
+.ai-row.weak .val, .ai-row.weak b { font-weight: 600; }
+.ai-row .spark { grid-area: auto; }
+.ai-row b { font-family: var(--font-data); font-weight: 500; }
+.ai-row .dim { color: var(--muted); }
+.ai-row .more { display: block; font-size: 12px; color: var(--muted); }
+.ai-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 14px; }
+.ai-sub { display: grid; gap: 4px; align-content: start; min-width: 0; }
+.ai-sub h4 { margin: 0 0 2px; font-size: 12.5px; font-weight: 600; color: var(--ink-2); }
+.finra { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; display: grid; gap: 10px; }
+.finra-head { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.finra h4 { margin: 0; font-size: 15px; font-weight: 600; }
+.finra p { margin: 0; font-size: 13px; color: var(--ink-2); }
+.badge-n { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 6px; background: var(--accent-wash); color: var(--accent); font-size: 12px; font-weight: 700; }
+.pill-o { font-size: 11.5px; font-weight: 600; color: var(--ink-2); border: 1px solid var(--line); padding: 0 7px; border-radius: 999px; }
+.btn-o { justify-self: start; display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border: 1px solid var(--accent); border-radius: 8px; font-weight: 600; font-size: 14px; text-decoration: none; color: var(--accent); }
+.bbb-big { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+.bbb-big .v { font-family: var(--font-data); font-size: 24px; font-weight: 500; }
+.bbb-big .s { font-family: var(--font-data); font-size: 13px; color: var(--ink-2); }
+.ai-back { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; justify-content: space-between; width: 100%; margin-top: 18px; background: var(--accent-wash); border: 0; border-radius: 10px; padding: 14px 18px; min-height: 44px; font: inherit; color: var(--ink); text-align: left; cursor: pointer; }
+.ai-back:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.ai-back b { color: var(--accent); }
+.ai-events { flex: 1 1 280px; min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; display: grid; gap: 12px; }
+.ai-events h3 { margin: 0; font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.ai-events ol { margin: 0; padding: 0; list-style: none; display: grid; gap: 12px; font-size: 13.5px; }
+.ai-events li { display: grid; }
+.ai-events .d { font-family: var(--font-data); font-size: 12px; color: var(--muted); }
+.ai-events a { color: var(--ink); text-decoration-color: var(--bar-quiet); }
+.ai-events .rule { border-top: 1px solid var(--line); padding-top: 10px; font-size: 13px; color: var(--ink-2); }
+.ai-foot { font-size: 12.5px; color: var(--muted); border-top: 1px solid var(--line); padding: 14px 2px 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; }
+.ai-row a { color: var(--accent); }
+.ai-foot p { margin: 0; }
+.ai-error { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; margin: 0; }
+
 /* Tooltip */
 .tip {
   position: fixed; z-index: 10; pointer-events: none; background: var(--surface); color: var(--ink);
@@ -245,6 +310,13 @@ footer .full { grid-column: 1 / -1; }
   .score-table th, .score-table td { padding: 6px 5px; }
   .score-table td.v { white-space: normal; }
   .score-table td.v.nw { white-space: nowrap; }
+  .step { grid-template-columns: 30px minmax(0, 1fr); column-gap: 10px; }
+  .rail .num { width: 28px; height: 28px; font-size: 13px; }
+  .step-card { padding: 16px 14px; }
+  .ai-row { grid-template-columns: 62px minmax(0, 1fr) 58px; gap: 8px; padding: 5px 6px; }
+  .ai-row.spk { grid-template-columns: 62px minmax(0, 1fr) 58px; }
+  .ai-row.spk .spark { grid-column: 2 / -1; justify-self: end; }
+  .ai-row.txt { grid-template-columns: 62px minmax(0, 1fr); }
   .share { grid-template-columns: auto; justify-items: end; gap: 3px; }
   .mbar { width: 40px; }
 }
@@ -257,6 +329,13 @@ footer .full { grid-column: 1 / -1; }
     <h1>미국 금리 매크로 리스크</h1>
     <p class="question">미국 금리가 왜 움직이고, 그 충격이 위험자산으로 번지고 있는가?</p>
   </header>
+
+  <div class="tabs" role="tablist" aria-label="화면 선택" id="tabs">
+    <button type="button" role="tab" id="tab-btn-weekly" aria-controls="tab-weekly" aria-selected="true">주간 판독</button>
+    <button type="button" role="tab" id="tab-btn-ai" aria-controls="tab-ai" aria-selected="false" tabindex="-1">AI 신용 관찰</button>
+  </div>
+
+  <div class="tabpanel" id="tab-weekly" role="tabpanel" aria-labelledby="tab-btn-weekly">
 
   <section class="verdict" aria-label="이번 주 판정">
     <div class="state">
@@ -395,6 +474,74 @@ footer .full { grid-column: 1 / -1; }
     <p class="full" id="notes"></p>
     <p class="full">지표 해석 프레임에 관한 정리이며 투자 자문이 아닙니다.</p>
   </footer>
+  </div>
+
+  <div class="tabpanel" id="tab-ai" role="tabpanel" aria-labelledby="tab-btn-ai" hidden>
+    <section class="ai-intro" aria-labelledby="h-ai">
+      <h2 id="h-ai">AI 신용 관찰</h2>
+      <p>오라클, 브로드컴, 엔비디아의 신용 위험을 봅니다. AI 기업이 번 돈보다 많이 투자하면 빚이 늘고, 빚 위험이 커지면 주식과 회사채 시장이 반응합니다. 아래로 내려가며 그 순서대로 봅니다. 이 탭의 숫자는 판정과 성적표에 넣지 않습니다.</p>
+      <p class="ai-warn" id="ai-warn"></p>
+    </section>
+    <p class="ai-error" id="ai-error" hidden></p>
+    <div class="ai-layout" id="ai-body">
+      <div class="ai-steps">
+        <div class="step">
+          <div class="rail" aria-hidden="true"><span class="num">1</span><span class="line"></span></div>
+          <article class="step-card" aria-labelledby="h-ai1">
+            <div class="step-head"><h3 id="h-ai1">돈이 모자라나</h3><span class="src">⑦ 설비투자 ÷ 영업현금흐름 · 분기 공시</span></div>
+            <p class="step-read" id="ai-capex-read"></p>
+            <div class="ai-rows" id="ai-capex"></div>
+            <p class="ai-note" id="ai-capex-note"></p>
+          </article>
+        </div>
+        <div class="step">
+          <div class="rail" aria-hidden="true"><span class="num">2</span><span class="line"></span></div>
+          <article class="step-card" aria-labelledby="h-ai2">
+            <div class="step-head"><h3 id="h-ai2">빚 위험이 커지나</h3><span class="src">③ 부도 거리 · ⑤ 보도된 CDS · ④ 회사채</span></div>
+            <p class="step-read" id="ai-dd-read"></p>
+            <div class="ai-cols">
+              <div class="ai-sub"><h4>③ 부도 거리 (낮을수록 위험)</h4><div class="ai-rows" id="ai-dd"></div></div>
+              <div class="ai-sub"><h4>⑤ 보도된 5년 CDS</h4><div class="ai-rows" id="ai-cds"></div></div>
+            </div>
+            <section class="finra" aria-labelledby="h-finra">
+              <div class="finra-head"><span class="badge-n" aria-hidden="true">4</span><h4 id="h-finra">회사채 실제 거래 가격</h4><span class="pill-o">직접 보기</span></div>
+              <p>CDS에 가장 가까운 무료 자료입니다. 다만 자동으로 받을 수 없어서, FINRA 웹에서 약관에 동의한 뒤 직접 확인합니다. 이 칸의 값은 매주 갱신되지 않습니다.</p>
+              <a class="btn-o" id="ai-finra" href="https://www.finra.org/finra-data/fixed-income" target="_blank" rel="noopener noreferrer">FINRA 회사채 데이터 열기</a>
+            </section>
+            <p class="ai-note">부도 거리는 회사 가치가 빚 아래로 떨어지려면 얼마나 크게 흔들려야 하는지를 나타낸 모형 추정치이며, 화살표 오른쪽은 4주 전 값입니다. CDS는 보도된 수치라서 출처마다 다를 수 있습니다.</p>
+          </article>
+        </div>
+        <div class="step">
+          <div class="rail" aria-hidden="true"><span class="num">3</span><span class="line"></span></div>
+          <article class="step-card" aria-labelledby="h-ai3">
+            <div class="step-head"><h3 id="h-ai3">주식시장이 반응하나</h3><span class="src">② 주가, S&amp;P 500 대비 4주 · 매주 자동</span></div>
+            <p class="step-read" id="ai-stk-read"></p>
+            <div class="ai-rows" id="ai-stk"></div>
+            <p class="ai-note">선은 S&amp;P 500 대비 상대 주가의 13주 추이입니다(13주 전 = 100). 주가는 실적이나 수주 같은 신용 밖의 이유로도 움직이므로, 1·2단계와 함께 읽습니다.</p>
+          </article>
+        </div>
+        <div class="step">
+          <div class="rail" aria-hidden="true"><span class="num">4</span></div>
+          <article class="step-card" aria-labelledby="h-ai4">
+            <div class="step-head"><h3 id="h-ai4">등급 전체로 번지나</h3><span class="src">① BBB 회사채 스프레드 · 매주 자동</span></div>
+            <p class="step-read" id="ai-bbb-read"></p>
+            <div class="bbb-big" id="ai-bbb"></div>
+            <p class="ai-note">오라클이 속한 BBB 등급 전체의 스프레드가 넓어지면, 걱정이 회사 하나를 넘어 등급 전체로 번지고 있다는 뜻입니다. 오라클이 투기등급으로 내려가면 주간 판독의 HY OAS에도 직접 반영됩니다.</p>
+          </article>
+        </div>
+        <button type="button" class="ai-back" id="ai-back"></button>
+      </div>
+      <aside class="ai-events" aria-labelledby="h-events">
+        <h3 id="h-events"><span class="badge-n" aria-hidden="true">6</span>큰 사건</h3>
+        <ol id="ai-events"></ol>
+        <p class="rule">알림 규칙: 오라클, 브로드컴, 엔비디아 가운데 한 곳이라도 투기등급으로 내려가거나 CDS가 사상 최고를 다시 쓰면, 예약 작업이 보고 첫 줄에 알립니다.</p>
+      </aside>
+    </div>
+    <footer class="ai-foot">
+      <p id="ai-sources"></p>
+      <p>이 탭은 판정과 성적표에 쓰지 않는 참고 정보입니다. 지표 해석 프레임에 관한 정리이며 투자 자문이 아닙니다.</p>
+    </footer>
+  </div>
 </div>
 <div class="tip" id="tip" hidden></div>
 
@@ -672,8 +819,152 @@ function render(d) {
     tbody.append(tr);
   });
   table.append(thead, tbody);
+  renderAI(d);
 }
 
+/* AI credit tab. Every value comes from DATA.ai; nothing here feeds the verdict. */
+const fmtPP = v => (v >= 0 ? "+" : "−") + Math.abs(v).toFixed(1) + "%p";
+const fmtUsd = v => Math.round(v / 1e8).toLocaleString("en-US") + "억 달러";
+const dotDate = s => s.replaceAll("-", ".");
+function renderAI(d) {
+  const ai = d.ai;
+  const back = document.getElementById("ai-back");
+  back.append(document.createTextNode(`시장 전체로 번졌는지는 주간 판독의 전이 지표가 봅니다. ${d.friday} 판정은 ${d.verdict}(${d.hits}/4), 국면은 '${d.regime.name}'입니다.`),
+    el("b", null, "주간 판독 보기"));
+  back.addEventListener("click", () => { showTab("weekly", true); window.scrollTo(0, 0); });
+  if (!ai || ai.error) {
+    const err = document.getElementById("ai-error");
+    err.textContent = `이번 갱신에서는 AI 신용 자료를 만들지 못했습니다${ai && ai.error ? ` (${ai.error})` : ""}. 주간 판독은 영향을 받지 않습니다.`;
+    err.hidden = false;
+    document.getElementById("ai-body").hidden = true;
+    return;
+  }
+  const names = Object.fromEntries(ai.companies.map(c => [c.key, c.name]));
+  document.getElementById("ai-warn").textContent = ai.warnings.length ? "데이터 메모: " + ai.warnings.join("; ") : "";
+
+  /* Step 1: capex / operating cash flow, track to 150% with a tick at 100% */
+  document.getElementById("ai-capex-read").textContent = ai.capex_reading;
+  const cap = document.getElementById("ai-capex");
+  ai.capex.forEach(r => {
+    const over = r.ratio >= 100;
+    const row = el("div", "ai-row" + (over ? " weak" : ""));
+    const track = el("div", "track");
+    track.setAttribute("role", "img");
+    track.setAttribute("aria-label", `${r.name} 설비투자 ÷ 영업현금흐름 ${Math.round(r.ratio)}%, 기준선 100%`);
+    const fill = el("span", "fill pos" + (over ? " over" : ""));
+    fill.style.left = "0"; fill.style.width = Math.min(150, r.ratio) / 1.5 + "%";
+    const tick = el("span", "tick"); tick.style.left = "calc(66.67% - 1px)";
+    track.append(fill, tick);
+    row.append(el("span", "nm", r.name), track, el("span", "val", Math.round(r.ratio) + "%"));
+    cap.append(row);
+  });
+  document.getElementById("ai-capex-note").textContent = ai.capex.length
+    ? "세로선이 100%입니다. 100%를 넘으면 번 돈보다 더 많이 투자하고 있어서, 모자란 돈을 빚으로 메웁니다. 기간은 " +
+      ai.capex.map(r => `${r.name} ${r.period}`).join(", ") + "이고, 장기부채는 " +
+      ai.capex.filter(r => r.debt).map(r => `${r.name} ${fmtUsd(r.debt)}(${r.debt_date})`).join(", ") + "입니다."
+    : "";
+
+  /* Step 2: distance to default, reported CDS */
+  document.getElementById("ai-dd-read").textContent = ai.dd_reading;
+  const low = ai.dd.length ? ai.dd.reduce((a, b) => (b.dd < a.dd ? b : a)) : null;
+  const ddBox = document.getElementById("ai-dd");
+  ai.dd.forEach(r => {
+    const row = el("div", "ai-row txt" + (r === low ? " weak" : ""));
+    const v = el("span");
+    v.append(el("b", null, r.dd.toFixed(2)), el("span", "dim", ` ← ${r.prior.toFixed(2)}`));
+    row.append(el("span", "nm", r.name), v);
+    ddBox.append(row);
+  });
+  if (!ai.dd.length) ddBox.append(el("p", "ai-note", "계산하지 못했습니다."));
+  const cdsBox = document.getElementById("ai-cds");
+  ai.companies.forEach(c => {
+    const x = ai.news.items.find(i => i.key === c.key);
+    const row = el("div", "ai-row txt" + (x && x.fresh && low && low.key === c.key && x.cds_bp != null ? " weak" : ""));
+    const v = el("span");
+    if (!x) v.append(el("span", "dim", "보도 없음"));
+    else {
+      if (x.cds_bp != null) v.append(el("b", null, Math.round(x.cds_bp) + "bp"), " ");
+      else v.append(el("span", "dim", "수치 없음 "));
+      v.append(el("span", "dim", `${x.date.slice(5).replace("-", "/")}${x.record_high ? " 사상 최고" : ""}${x.fresh ? "" : " (지난 보도)"} · `));
+      const a = el("a", null, x.source); a.href = x.url; a.target = "_blank"; a.rel = "noopener noreferrer";
+      v.append(a);
+      if (x.note) v.append(el("span", "more", x.note));
+    }
+    row.append(el("span", "nm", c.name), v);
+    cdsBox.append(row);
+  });
+  if (ai.finra_url) document.getElementById("ai-finra").href = ai.finra_url;
+
+  /* Step 3: share price vs the S&P 500, diverging bars on one scale */
+  document.getElementById("ai-stk-read").textContent = ai.stocks_reading;
+  const stk = document.getElementById("ai-stk");
+  const scale = Math.max(15, Math.ceil(Math.max(0, ...ai.stocks.map(r => Math.abs(r.rel))) / 5) * 5);
+  const weakest = ai.stocks.length ? ai.stocks.reduce((a, b) => (b.rel < a.rel ? b : a)) : null;
+  ai.stocks.forEach(r => {
+    const weak = r === weakest && r.rel < 0;
+    const row = el("div", "ai-row spk" + (weak ? " weak" : ""));
+    const track = el("div", "track");
+    track.setAttribute("role", "img");
+    track.setAttribute("aria-label", `${r.name} S&P 500 대비 ${fmtPP(r.rel)}, 주가 ${fmtPct(r.chg)}, 눈금 ±${scale}%p`);
+    const w = Math.min(50, (Math.abs(r.rel) / scale) * 50);
+    const fill = el("span", "fill " + (r.rel >= 0 ? "pos" : "neg") + (weak ? " over" : ""));
+    fill.style.width = w + "%"; fill.style.left = r.rel >= 0 ? "50%" : (50 - w) + "%";
+    const zero = el("span", "zero"); zero.style.left = "50%";
+    track.append(fill, zero);
+    row.append(el("span", "nm", r.name), track, el("span", "val", fmtPP(r.rel)),
+      sparkline(r.spark, v => v.toFixed(1), `${r.name} S&P 500 대비 상대 주가`));
+    stk.append(row);
+  });
+
+  /* Step 4: BBB spread */
+  document.getElementById("ai-bbb-read").textContent = ai.bbb_reading;
+  const bbb = document.getElementById("ai-bbb");
+  if (ai.bbb) {
+    bbb.append(el("span", "v", Math.round(ai.bbb.value) + "bp"),
+      el("span", "s", `4주 ${fmtBp(ai.bbb.chg)} · BBB와 A 차이 ${Math.round(ai.bbb.gap)}bp (4주 ${fmtBp(ai.bbb.gap_chg)})`),
+      sparkline(ai.bbb.spark, v => Math.round(v) + "bp", "BBB 스프레드"));
+  }
+
+  /* Events */
+  const ev = document.getElementById("ai-events");
+  ai.news.events.forEach(e => {
+    const li = el("li");
+    const a = el("a", null, e.text); a.href = e.url; a.target = "_blank"; a.rel = "noopener noreferrer";
+    li.append(el("span", "d", dotDate(e.date)), a);
+    ev.append(li);
+  });
+  if (!ai.news.events.length) ev.append(el("li", null, "기록된 사건이 없습니다."));
+
+  document.getElementById("ai-sources").textContent =
+    `자료: 주가 Yahoo Finance(금요일 종가), 공시 SEC(${ai.sec_updated || "날짜 없음"} 저장), BBB 스프레드 FRED(BAMLC0A4CBBB, BAMLC0A3CA), ` +
+    `CDS와 사건은 보도 기준(${ai.news.as_of || "날짜 없음"} 갱신). 부도 거리는 시가총액, 1년 주가 변동성, 장기부채로 계산한 단순 모형 추정치입니다.`;
+}
+
+/* Tabs: remembered per viewer; #ai opens the AI tab directly */
+const TABS = { weekly: ["tab-btn-weekly", "tab-weekly"], ai: ["tab-btn-ai", "tab-ai"] };
+function showTab(name, focus) {
+  Object.entries(TABS).forEach(([key, [btn, panel]]) => {
+    const on = key === name;
+    const b = document.getElementById(btn);
+    b.setAttribute("aria-selected", String(on));
+    b.tabIndex = on ? 0 : -1;
+    document.getElementById(panel).hidden = !on;
+    if (on && focus) b.focus();
+  });
+  hideTip();
+  try { localStorage.setItem("tab", name); } catch (e) { /* storage blocked: the default tab is fine */ }
+}
+document.getElementById("tab-btn-weekly").addEventListener("click", () => showTab("weekly"));
+document.getElementById("tab-btn-ai").addEventListener("click", () => showTab("ai"));
+document.getElementById("tabs").addEventListener("keydown", e => {
+  if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+  e.preventDefault();
+  showTab(document.getElementById("tab-btn-ai").getAttribute("aria-selected") === "true" ? "weekly" : "ai", true);
+});
+
 if (DATA) render(DATA);
+let startTab = location.hash === "#ai" ? "ai" : "weekly";
+try { if (location.hash !== "#ai" && localStorage.getItem("tab") === "ai") startTab = "ai"; } catch (e) { /* ignore */ }
+showTab(startTab);
 window.addEventListener("scroll", hideTip, { passive: true });
 </script>

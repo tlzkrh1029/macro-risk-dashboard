@@ -23,6 +23,8 @@ from pathlib import Path
 import pandas as pd
 import requests
 
+import aicredit
+
 ROOT = Path(__file__).resolve().parent
 UA = {"User-Agent": "Mozilla/5.0"}
 ACM_URL = "https://www.newyorkfed.org/medialibrary/media/research/data_indicators/ACMTermPremium.xls"
@@ -59,7 +61,18 @@ REGIMES = {  # (10y direction, any transmission indicator over?) -> (name, meani
 }
 
 
-def fred(series_id):
+def retry(fetch, *args, tries=3, wait=20):
+    """Retry a fetch; a FRED maintenance window answers with an HTML page, which fails to parse as JSON."""
+    for i in range(tries):
+        try:
+            return fetch(*args)
+        except (requests.RequestException, ValueError, KeyError, TypeError, IndexError):
+            if i == tries - 1:
+                raise
+            time.sleep(wait * (i + 1))
+
+
+def _fred(series_id):
     r = requests.get(
         "https://api.stlouisfed.org/fred/series/observations",
         params={"series_id": series_id, "api_key": os.environ["FRED_API_KEY"], "file_type": "json",
@@ -73,13 +86,21 @@ def fred(series_id):
     return s.dropna()
 
 
-def yahoo(ticker):
+def _yahoo(ticker):
     url = (f"https://query1.finance.yahoo.com/v8/finance/chart/{requests.utils.quote(ticker)}"
            f"?period1={int(time.time()) - YAHOO_DAYS * 86400}&period2={int(time.time())}&interval=1d")
     j = requests.get(url, headers=UA, timeout=60).json()["chart"]["result"][0]
     s = pd.Series(j["indicators"]["quote"][0]["close"],
                   index=pd.to_datetime(j["timestamp"], unit="s").normalize()).dropna()
     return s[~s.index.duplicated(keep="last")]
+
+
+def fred(series_id, tries=3):
+    return retry(_fred, series_id, tries=tries)
+
+
+def yahoo(ticker, tries=3):
+    return retry(_yahoo, ticker, tries=tries)
 
 
 def acm(column):
@@ -423,7 +444,11 @@ def build_page(series, rec, friday):
         h = compute(series, f)
         history.append({"d": h["friday"], "hits": h["hits"], "verdict": h["verdict"], "regime": h["regime"]["name"],
                         "over": [r["label"] for r in h["spread"] if r["over"]], "cause": h["cause"]})
-    data = dict(rec, spark=spark, history=history, memo=read_memo(friday), scorecard=scorecard(series, friday),
+    try:  # the AI credit tab is reference only; its failure must not stop the weekly page
+        ai = aicredit.build(series, friday, fred=lambda s: fred(s, tries=2), yahoo=yahoo)
+    except Exception as e:  # noqa: BLE001 - only the type name: messages can carry request URLs
+        ai = {"error": type(e).__name__}
+    data = dict(rec, spark=spark, history=history, memo=read_memo(friday), scorecard=scorecard(series, friday), ai=ai,
                 regimes=[{"dir": d, "spreading": s, "name": n, "meaning": m} for (d, s), (n, m) in REGIMES.items()],
                 regime_bp=REGIME_BP)
     template = (ROOT / "page" / "template.html").read_text()
