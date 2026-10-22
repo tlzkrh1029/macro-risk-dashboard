@@ -225,9 +225,19 @@ footer .full { grid-column: 1 / -1; }
 .tabs button { font: inherit; font-size: 14px; font-weight: 600; color: var(--muted); background: none; border: 0; border-bottom: 2px solid transparent; padding: 10px 14px; min-height: 44px; cursor: pointer; }
 .tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
 .tabs button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 4px; }
-.tabpanel { display: grid; gap: 22px; min-width: 0; }
+.tabpanel { display: grid; grid-template-columns: minmax(0, 1fr); gap: 22px; min-width: 0; }
 .tabpanel[hidden] { display: none; }
 [hidden] { display: none !important; }
+
+/* Refresh bar at the top of each tab: when the page was built, and a button that starts a rebuild */
+.refresh { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; font-size: 13px; color: var(--muted); }
+.refresh .meta { margin: 0; flex: 1 1 320px; min-width: 0; }
+.refresh button { font: inherit; font-size: 14px; font-weight: 600; color: var(--accent); background: var(--surface); border: 1px solid var(--accent); border-radius: 8px; min-height: 44px; padding: 0 16px; cursor: pointer; word-break: keep-all; }
+.refresh button:disabled { color: var(--muted); border-color: var(--line); cursor: default; }
+.refresh button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.refresh .rf-status { margin: 0; flex: 1 1 100%; color: var(--ink-2); }
+.refresh .rf-status:empty { display: none; }
+.cell.live .blk { outline: 2px dashed var(--ink-2); outline-offset: -4px; }
 
 /* AI credit tab: four steps from cause to market, events on the side */
 .ai-intro { display: grid; gap: 8px; }
@@ -343,7 +353,14 @@ footer .full { grid-column: 1 / -1; }
 
   <div class="tabpanel" id="tab-weekly" role="tabpanel" aria-labelledby="tab-btn-weekly">
 
-  <section class="verdict" aria-label="이번 주 판정">
+  <div class="refresh">
+    <p class="meta" id="rf-meta-weekly"></p>
+    <button type="button" id="rf-btn-weekly" hidden>새로고침</button>
+    <button type="button" id="rf-perm-weekly" hidden>권한 설정 열기</button>
+    <p class="rf-status" id="rf-status-weekly" role="status"></p>
+  </div>
+
+  <section class="verdict" id="verdict" aria-label="이번 주 판정">
     <div class="state">
       <div class="pill"><span class="sw" id="state-sw"></span><span id="state-label"></span></div>
       <div class="count" id="state-count"></div>
@@ -378,7 +395,7 @@ footer .full { grid-column: 1 / -1; }
   <section class="history" aria-labelledby="h-hist">
     <div class="panel-head">
       <h2 id="h-hist">최근 12주 판정</h2>
-      <p>같은 규칙으로 매주 금요일 종가를 다시 계산했습니다. 숫자는 기준을 넘은 지표 수입니다</p>
+      <p id="hist-sub">같은 규칙으로 매주 금요일 종가를 다시 계산했습니다. 숫자는 기준을 넘은 지표 수입니다</p>
     </div>
     <div class="strip" id="strip"></div>
     <div class="legend">
@@ -412,7 +429,7 @@ footer .full { grid-column: 1 / -1; }
   </section>
 
   <details>
-    <summary>데이터 표 보기 (최근 13주, 금요일 종가)</summary>
+    <summary id="table-sum">데이터 표 보기 (최근 13주, 금요일 종가)</summary>
     <div class="table-wrap"><table id="table"></table></div>
   </details>
 
@@ -471,7 +488,7 @@ footer .full { grid-column: 1 / -1; }
   <footer>
     <div>
       <h3>판정 규칙</h3>
-      <p>매주 금요일 미국 종가를 4주 전 금요일과 비교합니다. 경계 기준은 MOVE +20%, HY OAS +15%, VIX +30%, DXY +3%입니다. 기준을 넘은 지표가 0개면 안정, 1~2개면 경계, 3~4개면 스트레스입니다. 국면은 10년물 4주 변화(±15bp)와 기준을 넘은 전이 지표가 있는지로 정합니다.</p>
+      <p>매주 금요일 미국 종가를 4주 전 금요일과 비교합니다. 경계 기준은 MOVE +20%, HY OAS +15%, VIX +30%, DXY +3%입니다. 기준을 넘은 지표가 0개면 안정, 1~2개면 경계, 3~4개면 스트레스입니다. 국면은 10년물 4주 변화(±15bp)와 기준을 넘은 전이 지표가 있는지로 정합니다. 평일에 새로고침하면 가장 최근 거래일 종가를 4주 전 같은 요일과 비교한 주중 잠정 화면이 만들어집니다. 주중 잠정 판정은 주간 기록 파일과 성적표에 넣지 않으며, 토요일과 화요일의 정기 작업이 다시 금요일 기준 화면을 만듭니다.</p>
     </div>
     <div>
       <h3>데이터</h3>
@@ -483,6 +500,12 @@ footer .full { grid-column: 1 / -1; }
   </div>
 
   <div class="tabpanel" id="tab-ai" role="tabpanel" aria-labelledby="tab-btn-ai" hidden>
+    <div class="refresh">
+      <p class="meta" id="rf-meta-ai"></p>
+      <button type="button" id="rf-btn-ai" hidden>새로고침</button>
+      <button type="button" id="rf-perm-ai" hidden>권한 설정 열기</button>
+      <p class="rf-status" id="rf-status-ai" role="status"></p>
+    </div>
     <section class="ai-intro" aria-labelledby="h-ai">
       <h2 id="h-ai">AI 신용 관찰</h2>
       <p id="ai-intro-text">오라클, 브로드컴, 엔비디아의 신용 위험을 봅니다. AI 기업이 번 돈보다 많이 투자하면 빚이 늘기 쉽고, 빚 위험이 커지면 주식과 회사채 시장이 반응합니다. 아래로 내려가며 그 순서대로 봅니다. 동그라미 숫자(①~⑦)는 지표 번호이고, 화면은 원인에서 결과의 순서로 놓았습니다. 이 탭의 숫자는 판정, 국면, 성적표에 넣지 않습니다.</p>
@@ -626,8 +649,14 @@ function sparkline(points, fmt, label) {
 function render(d) {
   const f = new Date(d.friday + "T00:00:00");
   document.getElementById("eyebrow").textContent =
-    `주간 판독 · ${d.friday} (${WEEKDAY[f.getDay()]}) 미국 종가 기준 · 4주 전 ${d.prior} 대비` +
+    `${d.live ? "주중 잠정 판독" : "주간 판독"} · ${d.friday} (${WEEKDAY[f.getDay()]}) 미국 종가 기준 · 4주 전 ${d.prior} 대비` +
     (d.provisional ? " · 일부 지표는 잠정값 (아래 데이터 메모 참고)" : "");
+  if (d.live) {
+    document.getElementById("verdict").setAttribute("aria-label", "주중 잠정 판정");
+    document.getElementById("hist-sub").textContent =
+      "매주 금요일 종가로 다시 계산한 11주와, 마지막 칸(점선)의 주중 잠정 판정입니다. 숫자는 기준을 넘은 지표 수입니다";
+    document.getElementById("table-sum").textContent = "데이터 표 보기 (금요일 종가 12개와 기준일 종가)";
+  }
 
   /* Verdict band */
   document.getElementById("state-sw").style.background = STATUS[d.verdict];
@@ -705,15 +734,15 @@ function render(d) {
   /* 12-week verdict strip */
   const strip = document.getElementById("strip");
   d.history.forEach((h, i) => {
-    const cell = el("div", "cell" + (i === d.history.length - 1 ? " now" : ""));
+    const cell = el("div", "cell" + (i === d.history.length - 1 ? " now" : "") + (h.live ? " live" : ""));
     cell.tabIndex = 0;
-    const desc = `${h.d}: ${h.verdict} (${h.hits}/4), 국면 ${h.regime}` + (h.over.length ? `, 기준 초과 ${h.over.join(", ")}` : "") + `, 원인 ${h.cause.join("·")}`;
+    const desc = `${h.d}${h.live ? " 주중 잠정" : ""}: ${h.verdict} (${h.hits}/4), 국면 ${h.regime}` + (h.over.length ? `, 기준 초과 ${h.over.join(", ")}` : "") + `, 원인 ${h.cause.join("·")}`;
     cell.setAttribute("aria-label", desc);
     const blk = el("div", "blk", String(h.hits));
     blk.style.background = STATUS[h.verdict];
     blk.style.color = ON_STATUS[h.verdict];
     cell.append(blk, el("div", "d", shortDate(h.d)));
-    const lines = [[`${h.verdict} · ${h.hits}/4`, true], [h.d], [`국면: ${h.regime}`],
+    const lines = [[`${h.verdict} · ${h.hits}/4`, true], [h.live ? `${h.d} 주중 잠정` : h.d], [`국면: ${h.regime}`],
       [h.over.length ? `기준 초과: ${h.over.join(", ")}` : "기준 초과 없음"], [`원인: ${h.cause.join(", ")}`]];
     cell.addEventListener("pointermove", e => showTip(e.clientX, e.clientY, lines));
     cell.addEventListener("pointerleave", hideTip);
@@ -818,7 +847,7 @@ function render(d) {
   const all = [...[d.total, ...d.rates].map(r => ({ ...r, fmt: v => fmtRate(v) + "%" })), ...d.spread.map(r => ({ ...r, fmt: v => fmtLevel(r, v) }))];
   const table = document.getElementById("table");
   const head = el("tr");
-  head.append(el("th", null, "금요일"), ...all.map(r => el("th", null, r.label)));
+  head.append(el("th", null, d.live ? "날짜" : "금요일"), ...all.map(r => el("th", null, r.label)));
   const thead = el("thead"); thead.append(head);
   const tbody = el("tbody");
   d.spark[all[0].key].map(p => p.d).reverse().forEach((date, k) => {
@@ -829,6 +858,7 @@ function render(d) {
   });
   table.append(thead, tbody);
   renderAI(d);
+  setupRefresh(d);
 }
 
 /* AI credit tab. Every value comes from DATA.ai; nothing here feeds the verdict. */
@@ -838,7 +868,7 @@ const dotDate = s => s.replaceAll("-", ".");
 function renderAI(d) {
   const ai = d.ai;
   document.getElementById("ai-back-text").textContent =
-    `시장 전체로 번졌는지는 주간 판독의 전이 지표가 봅니다. ${d.friday} 판정은 ${d.verdict}(${d.hits}/4), 국면은 '${d.regime.name}'입니다.`;
+    `시장 전체로 번졌는지는 주간 판독의 전이 지표가 봅니다. ${d.friday}${d.live ? " 주중 잠정" : ""} 판정은 ${d.verdict}(${d.hits}/4), 국면은 '${d.regime.name}'입니다.`;
   document.getElementById("ai-back").addEventListener("click", () => { showTab("weekly", true); window.scrollTo(0, 0); });
   if (!ai || ai.error) {
     const err = document.getElementById("ai-error");
@@ -930,6 +960,8 @@ function renderAI(d) {
     stk.append(row);
   });
   stk.hidden = !ai.stocks.length;
+  if (d.live) document.getElementById("ai-stk-note").textContent =
+    "선은 S&P 500 대비 상대 주가의 최근 13개 점입니다(금요일 12개와 마지막 기준일, 첫 점 = 100). 주가는 실적이나 수주 같은 신용 밖의 이유로도 움직이므로, 1·2단계와 함께 읽습니다.";
   document.getElementById("ai-stk-note").hidden = !ai.stocks.length;
 
   /* Step 4: BBB spread */
@@ -953,8 +985,152 @@ function renderAI(d) {
   if (!ai.news.events.length) ev.append(el("li", null, "기록된 사건이 없습니다."));
 
   document.getElementById("ai-sources").textContent =
-    `자료: 주가 Yahoo Finance(금요일 종가), 공시 SEC(${ai.sec_updated ? ai.sec_updated + " 저장" : "저장 날짜 없음"}), BBB 스프레드 FRED(BAMLC0A4CBBB, BAMLC0A3CA), ` +
+    `자료: 주가 Yahoo Finance(${d.live ? "기준일" : "금요일"} 종가), 공시 SEC(${ai.sec_updated ? ai.sec_updated + " 저장" : "저장 날짜 없음"}), BBB 스프레드 FRED(BAMLC0A4CBBB, BAMLC0A3CA), ` +
     `CDS와 사건은 보도 기준(${ai.news.as_of ? ai.news.as_of + " 갱신" : "갱신 날짜 없음"}). 부도 거리는 시가총액, 1년 주가 변동성, 장기부채, 2년물 금리로 계산한 단순 모형 추정치입니다.`;
+}
+
+/* Refresh: each tab's button fires the poke-only scheduled task behind DATA.refresh through the viewer's
+   Claude Code Remote connector. A fresh cloud session rebuilds this page and republishes it at the same address;
+   the page only starts that run and follows its status. Both buttons rebuild both tabs; the AI tab's run also
+   searches the news first. */
+const RC = "Claude Code Remote";
+const RF = {
+  weekly: { scope: "weekly", wait: "보통 3~5분" },
+  ai: { scope: "ai", wait: "보도를 다시 검색하므로 보통 5~10분" },
+};
+const RF_POLL_MS = 30000, RF_MAX_POLLS = 30;
+const RF_ERR = {
+  approval_required: "새로고침하려면 이 페이지가 Claude Code Remote 커넥터를 쓰도록 허용해야 합니다. 버튼을 다시 누르면 허용 창이 열립니다.",
+  consent_required: "새로고침하려면 이 페이지가 Claude Code Remote 커넥터를 쓰도록 허용해야 합니다. 버튼을 다시 누르면 허용 창이 열립니다.",
+  not_in_manifest: "이 페이지에서 Claude Code Remote 커넥터 사용이 꺼져 있습니다. 권한 설정에서 켤 수 있습니다.",
+  server_not_connected: "Claude Code Remote 커넥터를 찾지 못했습니다. claude.ai 설정의 커넥터 목록에서 확인해 주세요.",
+  selection_required: "같은 이름의 Claude Code Remote 커넥터가 여러 개 있습니다. claude.ai가 보여 주는 창에서 하나를 고른 뒤 다시 눌러 주세요.",
+  needs_reauth: "Claude Code Remote 연결이 만료되었습니다. claude.ai 설정의 커넥터 목록에서 다시 연결해 주세요.",
+  blocked_by_policy: "조직 정책 때문에 이 페이지에서는 새로고침을 쓸 수 없습니다.",
+  tool_error: "새로고침 작업을 찾지 못했거나 실행할 권한이 없습니다. 이 대시보드를 만든 계정으로 열었을 때만 새로고침할 수 있습니다.",
+  not_granted: "이 보기에서는 새로고침을 쓸 수 없습니다.",
+  capability_disabled: "이 보기에서는 새로고침을 쓸 수 없습니다.",
+  capability_removed: "이 보기에서는 새로고침을 쓸 수 없습니다.",
+  bad_payload: "새로고침 작업의 상태를 읽지 못했습니다. 잠시 뒤 다시 눌러 주세요.",
+};
+const RF_AMBIGUOUS = new Set(["server_unavailable", "upstream_error"]);  // a write may have run anyway
+let rfMcp = null, rfTrigger = null, rfBusy = false;
+const rfEl = (tab, part) => document.getElementById(`rf-${part}-${tab}`);
+const rfStatus = text => Object.keys(RF).forEach(t => { rfEl(t, "status").textContent = text; });
+const rfButtons = on => Object.keys(RF).forEach(t => { rfEl(t, "btn").disabled = !on; });
+const rfPerm = show => Object.keys(RF).forEach(t => { rfEl(t, "perm").hidden = !show; });
+const rfTime = iso => new Intl.DateTimeFormat("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date(iso));
+const rfStamp = iso => new Intl.DateTimeFormat("ko-KR", { month: "long", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date(iso));
+
+function rfDone(text) { rfBusy = false; rfButtons(true); if (text) rfStatus(text); }
+function rfError(e) {
+  const code = e && e.code;
+  rfDone(RF_ERR[code] || `새로고침을 진행하지 못했습니다(오류 코드: ${code || "알 수 없음"}). 잠시 뒤 다시 눌러 주세요.`);
+  rfPerm(code === "not_in_manifest");
+}
+
+/* The task's last run: status names are the service's own, so only success and failure words are read */
+async function rfRead() {
+  const res = await rfMcp.callTool(RC, "get_trigger", { trigger_id: rfTrigger }, { cache: false });
+  const t = res && res.payload && typeof res.payload === "object" ? res.payload.trigger : null;
+  if (!t || typeof t !== "object") throw { code: "bad_payload" };
+  const r = t.last_run && typeof t.last_run === "object" ? t.last_run : {};
+  const status = String(r.status || "");
+  const ok = /SUCCEED/.test(status), failed = /FAIL|CANCEL|ERROR|TIMEOUT|ABORT/.test(status);
+  return { firedAt: r.fired_at || null, ok, failed, running: !!r.fired_at && !ok && !failed && !r.finished_at };
+}
+
+/* Follow a run until it ends: `prev` is the last run before the press (or the run already going, when `same`) */
+function rfFollow(prev, same, unsure, tab) {
+  let polls = 0, misses = 0, target = same ? prev : null;
+  const tick = async () => {
+    polls += 1;
+    let run;
+    try { run = await rfRead(); misses = 0; }
+    catch (e) {
+      if (e && RF_AMBIGUOUS.has(e.code) && ++misses < 3 && polls < RF_MAX_POLLS) { setTimeout(tick, RF_POLL_MS); return; }
+      rfError(e); return;
+    }
+    if (run.firedAt && run.firedAt !== prev) target = run.firedAt;  // our run, or a newer one that took over
+    if (!target) {
+      if (unsure && polls >= 4) return rfDone("새로고침이 시작되지 않았습니다. 버튼을 다시 눌러 주세요.");
+      if (polls >= 10) return rfDone("새로고침 작업이 아직 시작되지 않았습니다. 몇 분 뒤 이 페이지를 다시 열어 확인해 주세요.");
+      setTimeout(tick, RF_POLL_MS); return;
+    }
+    if (run.running) {
+      if (polls >= RF_MAX_POLLS) return rfDone(`새로고침이 아직 끝나지 않았습니다(${rfTime(target)} 시작). 몇 분 뒤 이 페이지를 다시 열어 확인해 주세요.`);
+      rfStatus(`새로고침을 실행하고 있습니다(${rfTime(target)} 시작${tab ? `, ${RF[tab].wait}` : ""}). 끝나면 새 화면이 이 주소로 게시됩니다.`);
+      setTimeout(tick, RF_POLL_MS); return;
+    }
+    rfDone(run.failed
+      ? "새로고침이 실패했습니다. Claude 앱의 예약 작업 기록에서 원인을 확인할 수 있습니다."
+      : "새로고침이 끝났습니다. 새 화면이 자동으로 열리지 않으면 이 페이지를 다시 열어 주세요.");
+  };
+  setTimeout(tick, same ? RF_POLL_MS : 5000);
+}
+
+async function rfStart(tab) {
+  if (rfBusy) return;
+  rfBusy = true; rfButtons(false); rfPerm(false);
+  rfStatus("새로고침 작업의 상태를 확인하고 있습니다.");
+  let before;
+  try { before = await rfRead(); } catch (e) { rfError(e); return; }
+  if (before.running) {
+    rfStatus(`이미 실행 중인 새로고침이 있습니다(${rfTime(before.firedAt)} 시작). 끝나면 새 화면이 이 주소로 게시됩니다.`);
+    rfFollow(before.firedAt, true, false, null);
+    return;
+  }
+  try {
+    await rfMcp.callTool(RC, "fire_trigger", { trigger_id: rfTrigger, text: `scope: ${RF[tab].scope}` });
+  } catch (e) {
+    if (e && RF_AMBIGUOUS.has(e.code)) {  // never fire twice on one press: look for the run instead
+      rfStatus("요청이 전달되었는지 확인하고 있습니다.");
+      rfFollow(before.firedAt, false, true, tab);
+      return;
+    }
+    rfError(e); return;
+  }
+  rfStatus(`새로고침을 시작했습니다. ${RF[tab].wait} 걸리며, 끝나면 새 화면이 이 주소로 게시됩니다.`);
+  rfFollow(before.firedAt, false, false, tab);
+}
+
+async function setupRefresh(d) {
+  const built = d.built_at ? `이 화면은 ${rfStamp(d.built_at)}에 만들었습니다.` : "";
+  const meta = {
+    weekly: "새로고침하면 종가가 나온 가장 최근 거래일 기준으로 두 탭을 다시 만들며, 보통 3~5분 걸립니다.",
+    ai: "새로고침하면 보도를 다시 검색한 뒤 가장 최근 거래일 기준으로 두 탭을 다시 만들며, 보통 5~10분 걸립니다.",
+  };
+  Object.keys(RF).forEach(t => { rfEl(t, "meta").textContent = built; });
+  const c = window.claude;
+  if (!d.refresh || !d.refresh.trigger_id || !c || typeof c.use !== "function") return;
+  rfTrigger = d.refresh.trigger_id;
+  let mcp = null;
+  try { mcp = await c.use("mcp"); } catch (e) { mcp = null; }
+  if (!mcp) {
+    Object.keys(RF).forEach(t => { rfEl(t, "meta").textContent = `${built} 새로고침 버튼은 claude.ai에서 이 페이지를 열 때 나타납니다.`.trim(); });
+    return;
+  }
+  rfMcp = mcp;
+  Object.keys(RF).forEach(t => {
+    rfEl(t, "meta").textContent = `${built} ${meta[t]}`.trim();
+    const b = rfEl(t, "btn");
+    b.hidden = false;
+    b.addEventListener("click", () => rfStart(t));
+    rfEl(t, "perm").addEventListener("click", async () => {
+      try { const p = await c.use("permissions"); if (p) await p.manage(); } catch (e) { /* panel unavailable: the artifact's Permissions menu still works */ }
+    });
+  });
+  /* Show a run already going, but only when the connector is already allowed: no consent prompt on load */
+  try {
+    const p = await c.use("permissions");
+    if (!p || (await p.state("mcp:" + RC)) !== "granted" || rfBusy) return;
+    const run = await rfRead();
+    if (run.running && !rfBusy) {
+      rfBusy = true; rfButtons(false);
+      rfStatus(`새로고침을 실행하고 있습니다(${rfTime(run.firedAt)} 시작). 끝나면 새 화면이 이 주소로 게시됩니다.`);
+      rfFollow(run.firedAt, true, false, null);
+    }
+  } catch (e) { /* stay quiet on load; a press reports any error */ }
 }
 
 /* Tabs: the viewer's own choice is remembered; #ai opens the AI tab without changing that choice */

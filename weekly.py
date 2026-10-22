@@ -5,6 +5,11 @@ Usage:
     FRED_API_KEY=... python weekly.py 2026-10-09         # a specific Friday
     FRED_API_KEY=... python weekly.py --save             # also write records/<date>.md
     FRED_API_KEY=... python weekly.py --page             # also write page/dashboard.html
+    FRED_API_KEY=... python weekly.py --latest --page    # page for the latest US close (the page's refresh button)
+
+--latest picks the latest US trading day whose close is in. On a Friday that is the weekly page; on any other
+day it is a mid-week provisional page, which compares that close with the same weekday 4 weeks earlier and is
+never saved as a weekly record.
 
 Requires: pandas, requests, xlrd
 """
@@ -17,8 +22,9 @@ import re
 import sys
 import time
 import unicodedata
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import pandas as pd
 import requests
@@ -26,6 +32,8 @@ import requests
 ROOT = Path(__file__).resolve().parent
 UA = {"User-Agent": "Mozilla/5.0"}
 ACM_URL = "https://www.newyorkfed.org/medialibrary/media/research/data_indicators/ACMTermPremium.xls"
+REFRESH_TRIGGER = "trig_0154vHJnqg4iB4LLQdh7tEt1"  # poke-only scheduled task behind the page's refresh buttons
+CLOSE_HOUR_ET = 17   # a weekday's close counts from 17:00 New York time; Yahoo serves the unfinished bar before that
 HISTORY_WEEKS = 12   # verdict strip on the page
 SPARK_WEEKS = 13     # weekly points per sparkline
 YAHOO_DAYS = 1300    # enough to recompute the rule back to when FRED's HY OAS history starts
@@ -135,6 +143,23 @@ def on_or_before(s, d):
 def last_friday(today):
     """Most recent Friday whose US close is in; today's Friday counts only from Saturday."""
     return today - timedelta(days=(today.weekday() - 4) % 7 or 7)
+
+
+def friday_of(day):
+    """The Friday on or before a day: the weekly verdict that day belongs to."""
+    return day - timedelta(days=(day.weekday() - 4) % 7)
+
+
+def latest_close(series, now=None):
+    """Latest US trading day whose close is in, by VIX's trading calendar; today counts from 17:00 New York time."""
+    now = now or datetime.now(ZoneInfo("America/New_York"))
+    cutoff = pd.Timestamp(now.date())
+    if now.weekday() >= 5 or now.hour < CLOSE_HOUR_ET:
+        cutoff -= timedelta(days=1)
+    days = series["vix"].index[series["vix"].index <= cutoff]
+    if days.empty:
+        raise ValueError(f"no closes on or before {cutoff.date()}")
+    return days[-1]
 
 
 def verdict_of(hits):
@@ -254,24 +279,32 @@ def explain(rec):
             out.append(f"{near_core}습니다{near_num}.")
         else:
             out.append(f"{_topic(_and(below))} 아직 기준 아래입니다.")
-    if rec["provisional"]:
+    if rec["provisional"] and rec["live"]:
+        out.append("일부 지표는 기준일 값이 아직 나오지 않아 그 전 거래일 값을 썼으므로, 그 값이 나오면 다음 갱신 때 숫자와 판정이 바뀔 수 있습니다.")
+    elif rec["provisional"]:
         out.append("일부 지표는 금요일 값이 없어 그 전 거래일 값을 썼으므로, 금요일 값이 나중에 나오면 다음 갱신 때 숫자와 판정이 바뀔 수 있습니다.")
     return out
 
 
 def note(rec, label, d0, d1, prior, friday):
-    """Flag values not taken on the Friday itself (holiday, or not yet published)."""
-    used = [f"{d.month}/{d.day}" for d, want in ((d0, prior), (d1, friday)) if d != want]
-    if used:
-        rec["notes"].append(f"{label}: 금요일 값이 없어 {', '.join(used)} 값 사용")
-        if d1 != friday:
-            rec["provisional"] = True
+    """Flag values not taken on the day itself (holiday, or not yet published)."""
+    used = [(d, want) for d, want in ((d0, prior), (d1, friday)) if d != want]
+    if used and rec["live"]:  # the days compared are not Fridays, so name them
+        rec["notes"].append(f"{label}: " + ", ".join(f"{w.month}/{w.day} 값이 없어 {d.month}/{d.day} 값 사용" for d, w in used))
+    elif used:
+        rec["notes"].append(f"{label}: 금요일 값이 없어 {', '.join(f'{d.month}/{d.day}' for d, _ in used)} 값 사용")
+    if d1 != friday:
+        rec["provisional"] = True
 
 
-def compute(series, friday):
+def compute(series, friday, live=False):
+    """The rule for one Friday; with live=True, for any trading day against the same weekday 4 weeks earlier.
+
+    The day is stored under "friday" either way: the page and the records read the as-of day from there.
+    """
     prior = friday - timedelta(weeks=4)
     rec = {"friday": str(friday.date()), "prior": str(prior.date()), "rates": [], "spread": [], "notes": [],
-           "provisional": False}
+           "provisional": False, "live": live}
     key, label, what, _, sid = TOTAL
     d1, v1 = on_or_before(series[key], friday)
     d0, v0 = on_or_before(series[key], prior)
@@ -367,7 +400,8 @@ def pad(text, width):
 
 
 def render_text(rec):
-    lines = [f"날짜: {rec['friday']} (4주 전: {rec['prior']})", "", "[금리]          값        4주 변화"]
+    lines = [f"날짜: {rec['friday']} (4주 전: {rec['prior']}){' · 주중 잠정' if rec['live'] else ''}", "",
+             "[금리]          값        4주 변화"]
     t = rec["total"]
     parts = [r["dates"] for r in rec["rates"] if r["key"] in ("dfii10", "t10yie")]
     same_day = all(p == t["dates"] for p in parts)  # Saturday runs mix Thursday and Friday values
@@ -434,27 +468,38 @@ def weekly_record(series, friday):
     return rec
 
 
-def build_page(series, rec, friday):
-    fridays = [friday - timedelta(weeks=k) for k in range(SPARK_WEEKS - 1, -1, -1)]
+def build_page(series, rec, day):
+    """The page for a Friday, or (rec["live"]) for a mid-week close: then the last point of every line and the
+    last cell of the verdict strip are that day, and everything weekly (scorecard, memo) stays on its Friday."""
+    live = rec["live"]
+    friday = friday_of(day) if live else day
+    n = SPARK_WEEKS - 1 if live else SPARK_WEEKS  # Fridays per line; a live page adds its day as the last point
+    fridays = [friday - timedelta(weeks=k) for k in range(n - 1, -1, -1)]
+    points = fridays + [day] if live else fridays
     spark = {}
     for key, *_rest in RATES + SPREAD + [TOTAL]:
         unit_bp = any(row[0] == key and row[5] == "bp" for row in SPREAD)
         spark[key] = [{"d": str(f.date()), "v": on_or_before(series[key], f)[1] * (100 if unit_bp else 1)}
-                      for f in fridays]
+                      for f in points]
     history = []
-    for k in range(HISTORY_WEEKS - 1, -1, -1):
-        f = friday - timedelta(weeks=k)
-        h = compute(series, f)
+    for k in range(HISTORY_WEEKS - (2 if live else 1), -1, -1):  # likewise the strip: its last cell is the day
+        h = compute(series, friday - timedelta(weeks=k))
         history.append({"d": h["friday"], "hits": h["hits"], "verdict": h["verdict"], "regime": h["regime"]["name"],
-                        "over": [r["label"] for r in h["spread"] if r["over"]], "cause": h["cause"]})
+                        "over": [r["label"] for r in h["spread"] if r["over"]], "cause": h["cause"], "live": False})
+    if live:
+        history.append({"d": rec["friday"], "hits": rec["hits"], "verdict": rec["verdict"], "regime": rec["regime"]["name"],
+                        "over": [r["label"] for r in rec["spread"] if r["over"]], "cause": rec["cause"], "live": True})
     try:  # the AI credit tab is reference only; its failure (even an import error) must not stop the weekly page
         import aicredit
-        ai = aicredit.build(series, friday, fred=lambda s: fred(s, tries=1), yahoo=lambda t: yahoo(t, tries=1))
+        ai = aicredit.build(series, day, fred=lambda s: fred(s, tries=1), yahoo=lambda t: yahoo(t, tries=1),
+                            points=points, live=live)
     except Exception as e:  # noqa: BLE001 - only the type name: messages can carry request URLs
         ai = {"error": type(e).__name__}
     data = dict(rec, spark=spark, history=history, memo=read_memo(friday), scorecard=scorecard(series, friday), ai=ai,
                 regimes=[{"dir": d, "spreading": s, "name": n, "meaning": m} for (d, s), (n, m) in REGIMES.items()],
-                regime_bp=REGIME_BP)
+                regime_bp=REGIME_BP, week_friday=str(friday.date()),
+                built_at=datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                refresh={"trigger_id": REFRESH_TRIGGER} if REFRESH_TRIGGER else None)
     template = (ROOT / "page" / "template.html").read_text()
     payload = json.dumps(data, ensure_ascii=False).replace("<", "\\u003c")  # news text from the web must not end the script
     out = ROOT / "page" / "dashboard.html"
@@ -464,6 +509,16 @@ def build_page(series, rec, friday):
 
 def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    if "--latest" in sys.argv:
+        if args or "--save" in sys.argv:
+            sys.exit("--latest takes no date and is never saved as a weekly record")
+        series = load_all()
+        day = latest_close(series)
+        rec = weekly_record(series, day) if day.weekday() == 4 else compute(series, day, live=True)
+        print(render_text(rec))
+        if "--page" in sys.argv:
+            print(f"built {build_page(series, rec, day)}")
+        return
     friday = pd.Timestamp(args[0]) if args else pd.Timestamp(last_friday(date.today()))
     if friday.weekday() != 4:
         sys.exit(f"{friday.date()} is not a Friday")

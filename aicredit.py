@@ -261,10 +261,11 @@ def _won(v):
 
 
 def _flag_day(s, friday, what, out):
-    """Note a value taken from before the Friday (Saturday runs: FRED next-day series stop at Thursday)."""
+    """Note a value taken from before the day (Saturday runs: FRED next-day series stop at Thursday)."""
     used = s.loc[friday - timedelta(days=4):friday].index[-1]
     if used != friday:
-        out["warnings"].append(f"{what} 금요일 값이 없어 {used.month}/{used.day} 값 사용")
+        want = f"{friday.month}/{friday.day}" if out["live"] else "금요일"
+        out["warnings"].append(f"{what} {want} 값이 없어 {used.month}/{used.day} 값 사용")
 
 
 def _period(start, end):
@@ -444,11 +445,15 @@ def _bbb_block(friday, prior, fridays, fred, out):
                           f"BBB와 A 등급의 차이는 {out['bbb']['gap']:.0f}bp입니다.")
 
 
-def build(series, friday, fred, yahoo):
-    """Everything the AI tab shows for one Friday. Each block fails on its own and leaves a Korean note."""
+def build(series, friday, fred, yahoo, points=None, live=False):
+    """Everything the AI tab shows for one Friday. Each block fails on its own and leaves a Korean note.
+
+    A refreshed mid-week page passes live=True with its close as the day and the line points it draws
+    (the Fridays before it, then that day); the 4-week changes compare that day with the same weekday 4 weeks earlier.
+    """
     out = {"friday": str(friday.date()), "companies": [{"key": k, "name": n, "ticker": t} for k, n, t, _ in COMPANIES],
-           "finra_url": FINRA_URL, "warnings": []}
-    fridays = [friday - timedelta(weeks=k) for k in range(SPARK_WEEKS - 1, -1, -1)]
+           "finra_url": FINRA_URL, "warnings": [], "live": live}
+    fridays = points or [friday - timedelta(weeks=k) for k in range(SPARK_WEEKS - 1, -1, -1)]
     prior = friday - timedelta(weeks=4)
 
     sec, warn = load_sec()
