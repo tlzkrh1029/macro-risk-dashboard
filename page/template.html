@@ -989,14 +989,14 @@ function renderAI(d) {
     `CDS와 사건은 보도 기준(${ai.news.as_of ? ai.news.as_of + " 갱신" : "갱신 날짜 없음"}). 부도 거리는 시가총액, 1년 주가 변동성, 장기부채, 2년물 금리로 계산한 단순 모형 추정치입니다.`;
 }
 
-/* Refresh: each tab's button fires the poke-only scheduled task behind DATA.refresh through the viewer's
+/* Refresh: each tab's button fires its own poke-only scheduled task (DATA.refresh) through the viewer's
    Claude Code Remote connector. A fresh cloud session rebuilds this page and republishes it at the same address;
-   the page only starts that run and follows its status. Both buttons rebuild both tabs; the AI tab's run also
+   the page only starts that run and follows its status. Both tasks rebuild both tabs; the AI tab's task also
    searches the news first. */
 const RC = "Claude Code Remote";
-const RF = {
-  weekly: { scope: "weekly", wait: "보통 3~5분" },
-  ai: { scope: "ai", wait: "보도를 다시 검색하므로 보통 5~10분" },
+const RF = {  /* one scheduled task per tab: DATA.refresh[tab] */
+  weekly: { label: "주간 판독", wait: "보통 3~5분" },
+  ai: { label: "AI 신용 관찰", wait: "보도를 다시 검색하므로 보통 5~10분" },
 };
 const RF_POLL_MS = 30000, RF_MAX_POLLS = 30, RF_STALE_MS = 45 * 60 * 1000;  // a run this old that never ended is stuck
 const RF_ERR = {
@@ -1014,8 +1014,8 @@ const RF_ERR = {
 };
 const RF_AMBIGUOUS = new Set(["server_unavailable", "upstream_error"]);  // a write may have run anyway
 const RF_LOG = "Claude 앱의 예약 작업 기록에서 승인을 기다리고 있거나 오류가 난 것은 아닌지 확인해 주세요.";
-const RF_AI_NOTE = " 이 실행은 보도를 다시 검색하지 않을 수 있으니, 끝난 뒤 AI 신용 관찰 탭의 새로고침을 한 번 더 눌러 주세요.";
-let rfMcp = null, rfTrigger = null, rfBusy = false;
+const RF_AI_NOTE = " 지금 실행 중인 것은 주간 판독 탭의 새로고침이라 보도를 다시 검색하지 않으니, 끝난 뒤 AI 신용 관찰 탭의 새로고침을 한 번 더 눌러 주세요.";
+let rfMcp = null, rfIds = null, rfBusy = false;
 const rfEl = (tab, part) => document.getElementById(`rf-${part}-${tab}`);
 const rfStatus = text => Object.keys(RF).forEach(t => { rfEl(t, "status").textContent = text; });
 /* aria-disabled, not disabled: a disabled button drops keyboard focus; rfStart ignores presses while busy */
@@ -1041,9 +1041,9 @@ function rfError(e) {
   rfPerm(code === "not_in_manifest");
 }
 
-/* The task's last run: status names are the service's own, so only success and failure words are read */
-async function rfRead() {
-  const res = await rfMcp.callTool(RC, "get_trigger", { trigger_id: rfTrigger }, { cache: false });
+/* A tab's task, its last run: status names are the service's own, so only success and failure words are read */
+async function rfRead(tab) {
+  const res = await rfMcp.callTool(RC, "get_trigger", { trigger_id: rfIds[tab] }, { cache: false });
   const t = res && res.payload && typeof res.payload === "object" ? res.payload.trigger : null;
   if (!t || typeof t !== "object") throw { code: "bad_payload" };
   const r = t.last_run && typeof t.last_run === "object" ? t.last_run : {};
@@ -1051,16 +1051,22 @@ async function rfRead() {
   const ok = /SUCCEED/.test(status), failed = /FAIL|CANCEL|ERROR|TIMEOUT|ABORT/.test(status);
   const open = !!r.fired_at && !ok && !failed && !r.finished_at;
   const stale = open && Date.now() - Date.parse(r.fired_at) > RF_STALE_MS;
-  return { firedAt: r.fired_at || null, ok, failed, running: open && !stale, stale };
+  return { tab, firedAt: r.fired_at || null, ok, failed, running: open && !stale, stale };
 }
+async function rfReadAll() {
+  const [weekly, ai] = await Promise.all([rfRead("weekly"), rfRead("ai")]);
+  return { weekly, ai };
+}
+/* The run going now on either task (the newer one if both): never two sessions at once, both would republish */
+const rfGoing = all => [all.weekly, all.ai].filter(r => r.running).sort((a, b) => Date.parse(b.firedAt) - Date.parse(a.firedAt))[0] || null;
 
-/* Follow a run until it ends: `prev` is the last run before the press (or the run already going, when `same`) */
-function rfFollow(prev, same, unsure, tab, note = "") {
+/* Follow a tab's run until it ends: `prev` is its last run before the press (or the run already going, when `same`) */
+function rfFollow(tab, prev, same, unsure, note = "") {
   let polls = 0, misses = 0, target = same ? prev : null;
   const tick = async () => {
     polls += 1;
     let run;
-    try { run = await rfRead(); misses = 0; }
+    try { run = await rfRead(tab); misses = 0; }
     catch (e) {
       if (e && e.retryable === true && ++misses < 3 && polls < RF_MAX_POLLS) { setTimeout(tick, Math.max(RF_POLL_MS, e.retryAfterMs || 0)); return; }
       if (target) return rfDone(`진행 상황을 확인하지 못했습니다(오류 코드: ${(e && e.code) || "알 수 없음"}). ${rfTime(target)}에 시작한 새로고침은 계속 진행 중일 수 있으니, 몇 분 뒤 이 페이지를 다시 열어 확인해 주세요.`);
@@ -1075,7 +1081,7 @@ function rfFollow(prev, same, unsure, tab, note = "") {
     if (run.stale) return rfDone(`${rfTime(target)}에 시작한 새로고침이 끝나지 않고 있습니다. ${RF_LOG}`);
     if (run.running) {
       if (polls >= RF_MAX_POLLS) return rfDone(`새로고침이 아직 끝나지 않았습니다(${rfTime(target)} 시작). 몇 분 뒤 이 페이지를 다시 열어 확인하고, 그래도 끝나지 않았으면 ${RF_LOG}`);
-      rfStatus(`새로고침을 실행하고 있습니다(${rfTime(target)} 시작${tab ? `, ${RF[tab].wait}` : ""}). 끝나면 새 화면이 이 주소로 게시됩니다.${note}`);
+      rfStatus(`${RF[tab].label} 탭의 새로고침을 실행하고 있습니다(${rfTime(target)} 시작, ${RF[tab].wait}). 끝나면 새 화면이 이 주소로 게시됩니다.${note}`);
       setTimeout(tick, RF_POLL_MS); return;
     }
     rfDone(run.failed
@@ -1089,27 +1095,30 @@ async function rfStart(tab) {
   if (rfBusy) return;
   rfBusy = true; rfButtons(false); rfPerm(false);
   rfStatus("새로고침 작업의 상태를 확인하고 있습니다.");
-  let before;
-  try { before = await rfRead(); } catch (e) { rfError(e); return; }
-  if (before.running) {  /* never two sessions at once: both would republish */
-    const note = tab === "ai" ? RF_AI_NOTE : "";
-    rfStatus(`이미 실행 중인 새로고침이 있습니다(${rfTime(before.firedAt)} 시작). 끝나면 새 화면이 이 주소로 게시됩니다.${note}`);
-    rfFollow(before.firedAt, true, false, null, note);
+  let all;
+  try { all = await rfReadAll(); } catch (e) { rfError(e); return; }
+  const going = rfGoing(all);
+  if (going) {
+    const note = tab === "ai" && going.tab === "weekly" ? RF_AI_NOTE : "";
+    rfStatus(`이미 실행 중인 ${RF[going.tab].label} 탭의 새로고침이 있습니다(${rfTime(going.firedAt)} 시작). 끝나면 새 화면이 이 주소로 게시됩니다.${note}`);
+    rfFollow(going.tab, going.firedAt, true, false, note);
     return;
   }
-  const note = before.stale ? ` ${rfTime(before.firedAt)}에 시작한 이전 새로고침은 끝나지 않은 채 남아 있습니다. ${RF_LOG}` : "";
+  const stuck = [all.weekly, all.ai].find(r => r.stale);
+  const note = stuck ? ` ${rfTime(stuck.firedAt)}에 시작한 이전 새로고침은 끝나지 않은 채 남아 있습니다. ${RF_LOG}` : "";
+  const prev = all[tab].firedAt;
   try {
-    await rfMcp.callTool(RC, "fire_trigger", { trigger_id: rfTrigger, text: `scope: ${RF[tab].scope}` });
+    await rfMcp.callTool(RC, "fire_trigger", { trigger_id: rfIds[tab] });
   } catch (e) {
     if (e && RF_AMBIGUOUS.has(e.code)) {  // never fire twice on one press: look for the run instead
       rfStatus("요청이 전달되었는지 확인하고 있습니다.");
-      rfFollow(before.firedAt, false, true, tab, note);
+      rfFollow(tab, prev, false, true, note);
       return;
     }
     rfError(e); return;
   }
   rfStatus(`새로고침을 시작했습니다. ${RF[tab].wait} 걸리며, 끝나면 새 화면이 이 주소로 게시됩니다.${note}`);
-  rfFollow(before.firedAt, false, false, tab, note);
+  rfFollow(tab, prev, false, false, note);
 }
 
 async function rfOpenPermissions(c) {
@@ -1133,8 +1142,8 @@ async function setupRefresh(d) {
   };
   Object.keys(RF).forEach(t => { rfEl(t, "meta").textContent = built; });
   const c = window.claude;
-  if (!d.refresh || !d.refresh.trigger_id || !c || typeof c.use !== "function") return;
-  rfTrigger = d.refresh.trigger_id;
+  if (!d.refresh || !d.refresh.weekly || !d.refresh.ai || !c || typeof c.use !== "function") return;
+  rfIds = d.refresh;
   let mcp = null;
   try { mcp = await c.use("mcp"); } catch (e) { mcp = null; }
   if (!mcp) {
@@ -1154,14 +1163,15 @@ async function setupRefresh(d) {
   try {
     const p = await c.use("permissions");
     if (!p || (await p.state("mcp:" + RC)) !== "granted" || rfBusy) return;
-    const run = await rfRead();
+    const all = await rfReadAll();
     if (rfBusy) return;
-    if (run.stale) return rfStatus(`${rfTime(run.firedAt)}에 시작한 새로고침이 끝나지 않은 것으로 표시됩니다. ${RF_LOG}`);
-    if (!run.running) return;
+    const run = rfGoing(all), stuck = [all.weekly, all.ai].find(r => r.stale);
+    if (!run && stuck) return rfStatus(`${rfTime(stuck.firedAt)}에 시작한 새로고침이 끝나지 않은 것으로 표시됩니다. ${RF_LOG}`);
+    if (!run) return;
     if (d.built_at && Date.parse(d.built_at) > Date.parse(run.firedAt)) return;  // this page is that run's output
     rfBusy = true; rfButtons(false);
-    rfStatus(`새로고침을 실행하고 있습니다(${rfTime(run.firedAt)} 시작). 끝나면 새 화면이 이 주소로 게시됩니다.`);
-    rfFollow(run.firedAt, true, false, null);
+    rfStatus(`${RF[run.tab].label} 탭의 새로고침을 실행하고 있습니다(${rfTime(run.firedAt)} 시작). 끝나면 새 화면이 이 주소로 게시됩니다.`);
+    rfFollow(run.tab, run.firedAt, true, false);
   } catch (e) { /* stay quiet on load; a press reports any error */ }
 }
 
