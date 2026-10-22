@@ -233,10 +233,10 @@ footer .full { grid-column: 1 / -1; }
 .refresh { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; font-size: 13px; color: var(--muted); }
 .refresh .meta { margin: 0; flex: 1 1 320px; min-width: 0; }
 .refresh button { font: inherit; font-size: 14px; font-weight: 600; color: var(--accent); background: var(--surface); border: 1px solid var(--accent); border-radius: 8px; min-height: 44px; padding: 0 16px; cursor: pointer; word-break: keep-all; }
-.refresh button:disabled { color: var(--muted); border-color: var(--line); cursor: default; }
+.refresh button[aria-disabled="true"] { color: var(--muted); border-color: var(--line); cursor: default; }
 .refresh button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .refresh .rf-status { margin: 0; flex: 1 1 100%; color: var(--ink-2); }
-.refresh .rf-status:empty { display: none; }
+.refresh .rf-status:empty { margin-top: -8px; }  /* stays in the accessibility tree; cancels the row gap */
 .cell.live .blk { outline: 2px dashed var(--ink-2); outline-offset: -4px; }
 
 /* AI credit tab: four steps from cause to market, events on the side */
@@ -488,7 +488,7 @@ footer .full { grid-column: 1 / -1; }
   <footer>
     <div>
       <h3>판정 규칙</h3>
-      <p>매주 금요일 미국 종가를 4주 전 금요일과 비교합니다. 경계 기준은 MOVE +20%, HY OAS +15%, VIX +30%, DXY +3%입니다. 기준을 넘은 지표가 0개면 안정, 1~2개면 경계, 3~4개면 스트레스입니다. 국면은 10년물 4주 변화(±15bp)와 기준을 넘은 전이 지표가 있는지로 정합니다. 평일에 새로고침하면 가장 최근 거래일 종가를 4주 전 같은 요일과 비교한 주중 잠정 화면이 만들어집니다. 주중 잠정 판정은 주간 기록 파일과 성적표에 넣지 않으며, 토요일과 화요일의 정기 작업이 다시 금요일 기준 화면을 만듭니다.</p>
+      <p>매주 금요일 미국 종가를 4주 전 금요일과 비교합니다. 경계 기준은 MOVE +20%, HY OAS +15%, VIX +30%, DXY +3%입니다. 기준을 넘은 지표가 0개면 안정, 1~2개면 경계, 3~4개면 스트레스입니다. 국면은 10년물 4주 변화(±15bp)와 기준을 넘은 전이 지표가 있는지로 정합니다. 새로고침하면 종가가 나온 가장 최근 미국 거래일을 기준으로 화면을 다시 만듭니다(뉴욕 시간으로 평일 17시부터 그날 종가를 씁니다). 그날이 금요일이 아니면, 그날 종가를 4주 전 같은 요일과 비교한 주중 잠정 화면이 만들어집니다. 주중 잠정 판정은 주간 기록 파일과 성적표에 넣지 않으며, 토요일과 화요일의 정기 작업이 다시 금요일 기준 화면을 만듭니다.</p>
     </div>
     <div>
       <h3>데이터</h3>
@@ -562,7 +562,7 @@ footer .full { grid-column: 1 / -1; }
       <aside class="ai-events" aria-labelledby="h-events">
         <h3 id="h-events"><span class="badge-n" aria-hidden="true">⑥</span>큰 사건</h3>
         <ol id="ai-events"></ol>
-        <p class="rule">알림 규칙: 오라클, 브로드컴, 엔비디아 가운데 한 곳이라도 신용평가사(S&amp;P, 무디스, 피치) 한 곳에서 투기등급으로 내려가거나, 5년 CDS가 사상 최고를 새로 기록했다는 보도가 나오면 예약 작업이 보고 첫 줄에 [AI 신용 알림]으로 적습니다. 보도를 검색해서 찾으므로 놓칠 수 있습니다.</p>
+        <p class="rule">알림 규칙: 오라클, 브로드컴, 엔비디아 가운데 한 곳이라도 신용평가사(S&amp;P, 무디스, 피치) 한 곳에서 투기등급으로 내려가거나, 5년 CDS가 사상 최고를 새로 기록했다는 보도가 나오면, 정기 예약 작업이나 이 탭의 새로고침 작업이 보고 첫 줄에 [AI 신용 알림]으로 적고 휴대폰 알림을 보냅니다. 보도를 검색해서 찾으므로 놓칠 수 있습니다.</p>
       </aside>
     </div>
     <div class="ai-back">
@@ -998,7 +998,7 @@ const RF = {
   weekly: { scope: "weekly", wait: "보통 3~5분" },
   ai: { scope: "ai", wait: "보도를 다시 검색하므로 보통 5~10분" },
 };
-const RF_POLL_MS = 30000, RF_MAX_POLLS = 30;
+const RF_POLL_MS = 30000, RF_MAX_POLLS = 30, RF_STALE_MS = 45 * 60 * 1000;  // a run this old that never ended is stuck
 const RF_ERR = {
   approval_required: "새로고침하려면 이 페이지가 Claude Code Remote 커넥터를 쓰도록 허용해야 합니다. 버튼을 다시 누르면 허용 창이 열립니다.",
   consent_required: "새로고침하려면 이 페이지가 Claude Code Remote 커넥터를 쓰도록 허용해야 합니다. 버튼을 다시 누르면 허용 창이 열립니다.",
@@ -1007,25 +1007,37 @@ const RF_ERR = {
   selection_required: "같은 이름의 Claude Code Remote 커넥터가 여러 개 있습니다. claude.ai가 보여 주는 창에서 하나를 고른 뒤 다시 눌러 주세요.",
   needs_reauth: "Claude Code Remote 연결이 만료되었습니다. claude.ai 설정의 커넥터 목록에서 다시 연결해 주세요.",
   blocked_by_policy: "조직 정책 때문에 이 페이지에서는 새로고침을 쓸 수 없습니다.",
-  tool_error: "새로고침 작업을 찾지 못했거나 실행할 권한이 없습니다. 이 대시보드를 만든 계정으로 열었을 때만 새로고침할 수 있습니다.",
   not_granted: "이 보기에서는 새로고침을 쓸 수 없습니다.",
   capability_disabled: "이 보기에서는 새로고침을 쓸 수 없습니다.",
   capability_removed: "이 보기에서는 새로고침을 쓸 수 없습니다.",
   bad_payload: "새로고침 작업의 상태를 읽지 못했습니다. 잠시 뒤 다시 눌러 주세요.",
 };
 const RF_AMBIGUOUS = new Set(["server_unavailable", "upstream_error"]);  // a write may have run anyway
+const RF_LOG = "Claude 앱의 예약 작업 기록에서 승인을 기다리고 있거나 오류가 난 것은 아닌지 확인해 주세요.";
+const RF_AI_NOTE = " 이 실행은 보도를 다시 검색하지 않을 수 있으니, 끝난 뒤 AI 신용 관찰 탭의 새로고침을 한 번 더 눌러 주세요.";
 let rfMcp = null, rfTrigger = null, rfBusy = false;
 const rfEl = (tab, part) => document.getElementById(`rf-${part}-${tab}`);
 const rfStatus = text => Object.keys(RF).forEach(t => { rfEl(t, "status").textContent = text; });
-const rfButtons = on => Object.keys(RF).forEach(t => { rfEl(t, "btn").disabled = !on; });
+/* aria-disabled, not disabled: a disabled button drops keyboard focus; rfStart ignores presses while busy */
+const rfButtons = on => Object.keys(RF).forEach(t => { rfEl(t, "btn").setAttribute("aria-disabled", String(!on)); });
 const rfPerm = show => Object.keys(RF).forEach(t => { rfEl(t, "perm").hidden = !show; });
-const rfTime = iso => new Intl.DateTimeFormat("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date(iso));
 const rfStamp = iso => new Intl.DateTimeFormat("ko-KR", { month: "long", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date(iso));
+function rfTime(iso) {  /* the time alone on the same local day, else with the date */
+  const t = new Date(iso);
+  if (t.toDateString() !== new Date().toDateString()) return rfStamp(iso);
+  return new Intl.DateTimeFormat("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false }).format(t);
+}
 
 function rfDone(text) { rfBusy = false; rfButtons(true); if (text) rfStatus(text); }
 function rfError(e) {
   const code = e && e.code;
-  rfDone(RF_ERR[code] || `새로고침을 진행하지 못했습니다(오류 코드: ${code || "알 수 없음"}). 잠시 뒤 다시 눌러 주세요.`);
+  let text = RF_ERR[code] || `새로고침을 진행하지 못했습니다(오류 코드: ${code || "알 수 없음"}). 잠시 뒤 다시 눌러 주세요.`;
+  if (code === "tool_error") {  /* the service's own reason, unless it is a JSON envelope */
+    const m = e && typeof e.message === "string" ? e.message.trim() : "";
+    text = "새로고침 작업이 요청을 처리하지 못했습니다." + (m && !/^[\[{]/.test(m) ? ` 받은 사유: ${m.slice(0, 200)}` : "") +
+      " 작업이 꺼져 있거나 지워졌을 수 있고, 이 대시보드를 만든 계정으로 열지 않았으면 새로고침할 수 없습니다.";
+  }
+  rfDone(text);
   rfPerm(code === "not_in_manifest");
 }
 
@@ -1037,18 +1049,21 @@ async function rfRead() {
   const r = t.last_run && typeof t.last_run === "object" ? t.last_run : {};
   const status = String(r.status || "");
   const ok = /SUCCEED/.test(status), failed = /FAIL|CANCEL|ERROR|TIMEOUT|ABORT/.test(status);
-  return { firedAt: r.fired_at || null, ok, failed, running: !!r.fired_at && !ok && !failed && !r.finished_at };
+  const open = !!r.fired_at && !ok && !failed && !r.finished_at;
+  const stale = open && Date.now() - Date.parse(r.fired_at) > RF_STALE_MS;
+  return { firedAt: r.fired_at || null, ok, failed, running: open && !stale, stale };
 }
 
 /* Follow a run until it ends: `prev` is the last run before the press (or the run already going, when `same`) */
-function rfFollow(prev, same, unsure, tab) {
+function rfFollow(prev, same, unsure, tab, note = "") {
   let polls = 0, misses = 0, target = same ? prev : null;
   const tick = async () => {
     polls += 1;
     let run;
     try { run = await rfRead(); misses = 0; }
     catch (e) {
-      if (e && RF_AMBIGUOUS.has(e.code) && ++misses < 3 && polls < RF_MAX_POLLS) { setTimeout(tick, RF_POLL_MS); return; }
+      if (e && e.retryable === true && ++misses < 3 && polls < RF_MAX_POLLS) { setTimeout(tick, Math.max(RF_POLL_MS, e.retryAfterMs || 0)); return; }
+      if (target) return rfDone(`진행 상황을 확인하지 못했습니다(오류 코드: ${(e && e.code) || "알 수 없음"}). ${rfTime(target)}에 시작한 새로고침은 계속 진행 중일 수 있으니, 몇 분 뒤 이 페이지를 다시 열어 확인해 주세요.`);
       rfError(e); return;
     }
     if (run.firedAt && run.firedAt !== prev) target = run.firedAt;  // our run, or a newer one that took over
@@ -1057,14 +1072,15 @@ function rfFollow(prev, same, unsure, tab) {
       if (polls >= 10) return rfDone("새로고침 작업이 아직 시작되지 않았습니다. 몇 분 뒤 이 페이지를 다시 열어 확인해 주세요.");
       setTimeout(tick, RF_POLL_MS); return;
     }
+    if (run.stale) return rfDone(`${rfTime(target)}에 시작한 새로고침이 끝나지 않고 있습니다. ${RF_LOG}`);
     if (run.running) {
-      if (polls >= RF_MAX_POLLS) return rfDone(`새로고침이 아직 끝나지 않았습니다(${rfTime(target)} 시작). 몇 분 뒤 이 페이지를 다시 열어 확인해 주세요.`);
-      rfStatus(`새로고침을 실행하고 있습니다(${rfTime(target)} 시작${tab ? `, ${RF[tab].wait}` : ""}). 끝나면 새 화면이 이 주소로 게시됩니다.`);
+      if (polls >= RF_MAX_POLLS) return rfDone(`새로고침이 아직 끝나지 않았습니다(${rfTime(target)} 시작). 몇 분 뒤 이 페이지를 다시 열어 확인하고, 그래도 끝나지 않았으면 ${RF_LOG}`);
+      rfStatus(`새로고침을 실행하고 있습니다(${rfTime(target)} 시작${tab ? `, ${RF[tab].wait}` : ""}). 끝나면 새 화면이 이 주소로 게시됩니다.${note}`);
       setTimeout(tick, RF_POLL_MS); return;
     }
     rfDone(run.failed
       ? "새로고침이 실패했습니다. Claude 앱의 예약 작업 기록에서 원인을 확인할 수 있습니다."
-      : "새로고침이 끝났습니다. 새 화면이 자동으로 열리지 않으면 이 페이지를 다시 열어 주세요.");
+      : "새로고침 작업이 끝났습니다. 새 화면이 열리지 않으면 이 페이지를 다시 열어 주세요. 다시 열어도 위쪽의 만든 시각이 그대로이면 화면을 다시 만들지 못한 것이니, Claude 앱의 예약 작업 기록에서 원인을 확인해 주세요." + note);
   };
   setTimeout(tick, same ? RF_POLL_MS : 5000);
 }
@@ -1075,23 +1091,38 @@ async function rfStart(tab) {
   rfStatus("새로고침 작업의 상태를 확인하고 있습니다.");
   let before;
   try { before = await rfRead(); } catch (e) { rfError(e); return; }
-  if (before.running) {
-    rfStatus(`이미 실행 중인 새로고침이 있습니다(${rfTime(before.firedAt)} 시작). 끝나면 새 화면이 이 주소로 게시됩니다.`);
-    rfFollow(before.firedAt, true, false, null);
+  if (before.running) {  /* never two sessions at once: both would republish */
+    const note = tab === "ai" ? RF_AI_NOTE : "";
+    rfStatus(`이미 실행 중인 새로고침이 있습니다(${rfTime(before.firedAt)} 시작). 끝나면 새 화면이 이 주소로 게시됩니다.${note}`);
+    rfFollow(before.firedAt, true, false, null, note);
     return;
   }
+  const note = before.stale ? ` ${rfTime(before.firedAt)}에 시작한 이전 새로고침은 끝나지 않은 채 남아 있습니다. ${RF_LOG}` : "";
   try {
     await rfMcp.callTool(RC, "fire_trigger", { trigger_id: rfTrigger, text: `scope: ${RF[tab].scope}` });
   } catch (e) {
     if (e && RF_AMBIGUOUS.has(e.code)) {  // never fire twice on one press: look for the run instead
       rfStatus("요청이 전달되었는지 확인하고 있습니다.");
-      rfFollow(before.firedAt, false, true, tab);
+      rfFollow(before.firedAt, false, true, tab, note);
       return;
     }
     rfError(e); return;
   }
-  rfStatus(`새로고침을 시작했습니다. ${RF[tab].wait} 걸리며, 끝나면 새 화면이 이 주소로 게시됩니다.`);
-  rfFollow(before.firedAt, false, false, tab);
+  rfStatus(`새로고침을 시작했습니다. ${RF[tab].wait} 걸리며, 끝나면 새 화면이 이 주소로 게시됩니다.${note}`);
+  rfFollow(before.firedAt, false, false, tab, note);
+}
+
+async function rfOpenPermissions(c) {
+  const menu = "권한 창을 열지 못했습니다. claude.ai에서 이 페이지의 권한 메뉴를 열어 Claude Code Remote를 켜 주세요.";
+  let p = null;
+  try { p = await c.use("permissions"); } catch (e) { p = null; }
+  if (!p) return rfStatus(menu);
+  try { await p.manage(); } catch (e) { return rfStatus(menu); }
+  const s = await p.state("mcp:" + RC).catch(() => "unavailable");
+  if (s !== "denied" && s !== "unavailable" && !rfBusy) {
+    rfPerm(false);
+    rfStatus("Claude Code Remote 커넥터를 켰습니다. 새로고침 버튼을 다시 눌러 주세요.");
+  }
 }
 
 async function setupRefresh(d) {
@@ -1115,21 +1146,22 @@ async function setupRefresh(d) {
     rfEl(t, "meta").textContent = `${built} ${meta[t]}`.trim();
     const b = rfEl(t, "btn");
     b.hidden = false;
+    b.setAttribute("aria-disabled", "false");
     b.addEventListener("click", () => rfStart(t));
-    rfEl(t, "perm").addEventListener("click", async () => {
-      try { const p = await c.use("permissions"); if (p) await p.manage(); } catch (e) { /* panel unavailable: the artifact's Permissions menu still works */ }
-    });
+    rfEl(t, "perm").addEventListener("click", () => rfOpenPermissions(c));
   });
   /* Show a run already going, but only when the connector is already allowed: no consent prompt on load */
   try {
     const p = await c.use("permissions");
     if (!p || (await p.state("mcp:" + RC)) !== "granted" || rfBusy) return;
     const run = await rfRead();
-    if (run.running && !rfBusy) {
-      rfBusy = true; rfButtons(false);
-      rfStatus(`새로고침을 실행하고 있습니다(${rfTime(run.firedAt)} 시작). 끝나면 새 화면이 이 주소로 게시됩니다.`);
-      rfFollow(run.firedAt, true, false, null);
-    }
+    if (rfBusy) return;
+    if (run.stale) return rfStatus(`${rfTime(run.firedAt)}에 시작한 새로고침이 끝나지 않은 것으로 표시됩니다. ${RF_LOG}`);
+    if (!run.running) return;
+    if (d.built_at && Date.parse(d.built_at) > Date.parse(run.firedAt)) return;  // this page is that run's output
+    rfBusy = true; rfButtons(false);
+    rfStatus(`새로고침을 실행하고 있습니다(${rfTime(run.firedAt)} 시작). 끝나면 새 화면이 이 주소로 게시됩니다.`);
+    rfFollow(run.firedAt, true, false, null);
   } catch (e) { /* stay quiet on load; a press reports any error */ }
 }
 

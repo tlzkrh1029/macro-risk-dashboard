@@ -32,7 +32,7 @@ import requests
 ROOT = Path(__file__).resolve().parent
 UA = {"User-Agent": "Mozilla/5.0"}
 ACM_URL = "https://www.newyorkfed.org/medialibrary/media/research/data_indicators/ACMTermPremium.xls"
-REFRESH_TRIGGER = "trig_0154vHJnqg4iB4LLQdh7tEt1"  # poke-only scheduled task behind the page's refresh buttons
+REFRESH_TRIGGER = "trig_01D7QMaWrEGmARRpbm7YKDZo"  # poke-only scheduled task behind the page's refresh buttons
 CLOSE_HOUR_ET = 17   # a weekday's close counts from 17:00 New York time; Yahoo serves the unfinished bar before that
 HISTORY_WEEKS = 12   # verdict strip on the page
 SPARK_WEEKS = 13     # weekly points per sparkline
@@ -129,6 +129,10 @@ def load_all():
     except Exception as e:  # noqa: BLE001
         print(f"warning: {OUTCOME[4]} not loaded, scorecard skipped ({e})", file=sys.stderr)
         series[OUTCOME[0]] = None
+    spx = series[OUTCOME[0]]
+    if spx is not None:  # Cboe quotes VIX on Memorial Day and Labor Day; such a quote is no close to compare with
+        v = series["vix"]
+        series["vix"] = v[v.index.isin(spx.index) | (v.index > spx.index.max())]
     return series
 
 
@@ -151,15 +155,21 @@ def friday_of(day):
 
 
 def latest_close(series, now=None):
-    """Latest US trading day whose close is in, by VIX's trading calendar; today counts from 17:00 New York time."""
+    """Latest US trading day whose close is in; today counts from 17:00 New York time.
+
+    The calendar is the S&P 500's (VIX's only when the S&P 500 failed to load): Cboe quotes VIX on some stock market
+    holidays. Once a week's Friday has passed without a close (a Friday holiday), the answer is that Friday, so the
+    page is the weekly one the routine builds for it.
+    """
     now = now or datetime.now(ZoneInfo("America/New_York"))
     cutoff = pd.Timestamp(now.date())
     if now.weekday() >= 5 or now.hour < CLOSE_HOUR_ET:
         cutoff -= timedelta(days=1)
-    days = series["vix"].index[series["vix"].index <= cutoff]
+    cal = series["spx"].index if series.get("spx") is not None else series["vix"].index
+    days = cal[cal <= cutoff]
     if days.empty:
         raise ValueError(f"no closes on or before {cutoff.date()}")
-    return days[-1]
+    return max(days[-1], friday_of(cutoff))
 
 
 def verdict_of(hits):
@@ -280,7 +290,7 @@ def explain(rec):
         else:
             out.append(f"{_topic(_and(below))} 아직 기준 아래입니다.")
     if rec["provisional"] and rec["live"]:
-        out.append("일부 지표는 기준일 값이 아직 나오지 않아 그 전 거래일 값을 썼으므로, 그 값이 나오면 다음 갱신 때 숫자와 판정이 바뀔 수 있습니다.")
+        out.append("일부 지표는 기준일 값이 없어 그 전 거래일 값을 썼습니다. 아직 발표되지 않은 값이라면, 발표된 뒤 다시 갱신할 때 숫자와 판정이 바뀔 수 있습니다.")
     elif rec["provisional"]:
         out.append("일부 지표는 금요일 값이 없어 그 전 거래일 값을 썼으므로, 금요일 값이 나중에 나오면 다음 갱신 때 숫자와 판정이 바뀔 수 있습니다.")
     return out
