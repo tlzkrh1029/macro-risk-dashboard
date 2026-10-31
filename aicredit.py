@@ -417,12 +417,12 @@ def _dd_block(series, friday, prior, sec, prices, news, out):
         text += " 4주 전과 같습니다."
     else:
         text += f" 4주 전 {low['prior']:.2f}에서 {'낮아졌습니다' if low['dd'] < low['prior'] else '높아졌습니다'}."
-    cds = next((x for x in news["items"] if x["key"] == low["key"] and x["cds_bp"] is not None and x["fresh"]), None)
-    if cds:
-        day = pd.Timestamp(cds["date"])
-        text += (f" {day.month}월 {day.day}일 보도에 따르면 {names[low['key']]} 5년 CDS는 {cds['cds_bp']:.0f}bp"
-                 + ("로, 보도 당시 사상 최고였습니다." if cds["record_high"] else "였습니다."))
     out["dd_reading"] = text
+    cds = next((x for x in news["items"] if x["key"] == low["key"] and x["cds_bp"] is not None and x["fresh"]), None)
+    if cds:  # kept apart: it restates a news report read by the model, which the page marks
+        day = pd.Timestamp(cds["date"])
+        out["dd_reading_cds"] = (f"{day.month}월 {day.day}일 보도에 따르면 {names[low['key']]} 5년 CDS는 {cds['cds_bp']:.0f}bp"
+                                 + ("로, 보도 당시 사상 최고였습니다." if cds["record_high"] else "였습니다."))
 
 
 def _bbb_block(friday, prior, fridays, fred, out):

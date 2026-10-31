@@ -16,6 +16,8 @@
   --track: #e8ecf0;
   --accent: #1d5f7a;
   --accent-wash: rgba(29, 95, 122, 0.10);
+  --judge: #6a4bb5;
+  --judge-wash: rgba(106, 75, 181, 0.07);
   --bar-quiet: #aeb8c3;
   --spark: #8c97a3;
   --ring: rgba(20, 27, 36, 0.10);
@@ -39,6 +41,8 @@
     --track: #1e2731;
     --accent: #62b2d1;
     --accent-wash: rgba(98, 178, 209, 0.14);
+    --judge: #b6a1ef;
+    --judge-wash: rgba(182, 161, 239, 0.10);
     --bar-quiet: #4f5b69;
     --spark: #6f7b88;
     --ring: rgba(255, 255, 255, 0.10);
@@ -55,6 +59,8 @@
   --track: #1e2731;
   --accent: #62b2d1;
   --accent-wash: rgba(98, 178, 209, 0.14);
+  --judge: #b6a1ef;
+  --judge-wash: rgba(182, 161, 239, 0.10);
   --bar-quiet: #4f5b69;
   --spark: #6f7b88;
   --ring: rgba(255, 255, 255, 0.10);
@@ -268,7 +274,14 @@ footer .full { grid-column: 1 / -1; }
 .ai-row a, .ai-row .more, .ai-events a, .ai-events li { overflow-wrap: anywhere; }
 .ai-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 14px; }
 .ai-sub { display: grid; gap: 4px; align-content: start; min-width: 0; }
-.ai-sub h4 { margin: 0 0 2px; font-size: 12.5px; font-weight: 600; color: var(--ink-2); }
+.ai-sub h4 { margin: 0 0 2px; font-size: 12.5px; font-weight: 600; color: var(--ink-2); display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+/* Parts the model writes from news (not computed): one violet mark, used nowhere else */
+.judge-tag { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; line-height: 1.7; color: var(--judge); border: 1px solid var(--judge); border-radius: 999px; padding: 0 8px; white-space: nowrap; vertical-align: 1px; letter-spacing: 0; }
+.judge-tag::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--judge); flex: none; }
+.judged { background: var(--judge-wash); border-left: 3px solid var(--judge); border-radius: 0 8px 8px 0; padding: 8px 10px 10px; }
+.judged-inline { background: var(--judge-wash); box-shadow: inset 0 -1.5px 0 var(--judge); border-radius: 3px; padding: 0 3px; }
+.judge-key { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; margin: 0; font-size: 13px; color: var(--ink-2); background: var(--judge-wash); border-left: 3px solid var(--judge); border-radius: 0 8px 8px 0; padding: 8px 12px; max-width: 72ch; }
+.ai-events.judged-box { border-left: 3px solid var(--judge); }
 .finra { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; display: grid; gap: 10px; }
 .finra-head { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
 .finra h4 { margin: 0; font-size: 15px; font-weight: 600; }
@@ -498,6 +511,7 @@ footer .full { grid-column: 1 / -1; }
     <section class="ai-intro" aria-labelledby="h-ai">
       <h2 id="h-ai">AI 신용 관찰</h2>
       <p id="ai-intro-text">오라클, 브로드컴, 엔비디아의 신용 위험을 봅니다. AI 기업이 번 돈보다 많이 투자하면 빚이 늘기 쉽고, 빚 위험이 커지면 주식과 회사채 시장이 반응합니다. 아래로 내려가며 그 순서대로 봅니다. 동그라미 숫자(①~⑦)는 지표 번호이고, 화면은 원인에서 결과의 순서로 놓았습니다. 이 탭의 숫자는 판정, 국면, 성적표에 넣지 않습니다.</p>
+      <p class="judge-key"><span class="judge-tag">AI 정리</span><span>이 표시가 붙은 칸은 AI 모델이 웹에서 기사를 찾아 읽고 옮겨 적은 내용입니다. 기사를 잘못 읽을 수 있으니 중요한 숫자는 출처 링크에서 확인하세요. 표시가 없는 숫자는 모두 스크립트가 공개 데이터로 계산합니다.<span id="judge-asof"></span></span></p>
       <p class="ai-warn" id="ai-warn"></p>
     </section>
     <p class="ai-error" id="ai-error" hidden></p>
@@ -519,7 +533,7 @@ footer .full { grid-column: 1 / -1; }
             <p class="step-read" id="ai-dd-read"></p>
             <div class="ai-cols">
               <div class="ai-sub"><h4>③ 부도 거리 (낮을수록 위험)</h4><div class="ai-rows" id="ai-dd"></div></div>
-              <div class="ai-sub"><h4>⑤ 보도된 5년 CDS</h4><div class="ai-rows" id="ai-cds"></div></div>
+              <div class="ai-sub judged"><h4>⑤ 보도된 5년 CDS <span class="judge-tag">AI 정리</span></h4><div class="ai-rows" id="ai-cds"></div></div>
             </div>
             <section class="finra" aria-labelledby="h-finra">
               <div class="finra-head"><span class="badge-n" aria-hidden="true">④</span><h4 id="h-finra">회사채 실제 거래 가격</h4><span class="pill-o">직접 보기</span></div>
@@ -548,10 +562,10 @@ footer .full { grid-column: 1 / -1; }
           </article>
         </div>
       </div>
-      <aside class="ai-events" aria-labelledby="h-events">
-        <h3 id="h-events"><span class="badge-n" aria-hidden="true">⑥</span>큰 사건</h3>
+      <aside class="ai-events judged-box" aria-labelledby="h-events">
+        <h3 id="h-events"><span class="badge-n" aria-hidden="true">⑥</span>큰 사건 <span class="judge-tag">AI 정리</span></h3>
         <ol id="ai-events"></ol>
-        <p class="rule">알림 규칙: 오라클, 브로드컴, 엔비디아 가운데 한 곳이라도 신용평가사(S&amp;P, 무디스, 피치) 한 곳에서 투기등급으로 내려가거나, 5년 CDS가 사상 최고를 새로 기록했다는 보도가 나오면, 정기 예약 작업이나 이 탭의 새로고침 작업이 보고 첫 줄에 [AI 신용 알림]으로 적고 휴대폰 알림을 보냅니다. 보도를 검색해서 찾으므로 놓칠 수 있습니다.</p>
+        <p class="rule">알림 규칙: 오라클, 브로드컴, 엔비디아 가운데 한 곳이라도 신용평가사(S&amp;P, 무디스, 피치) 한 곳에서 투기등급으로 내려가거나, 5년 CDS가 사상 최고를 새로 기록했다는 보도가 나오면, AI 신용 새로고침 작업이 보고 첫 줄에 [AI 신용 알림]으로 적고 휴대폰 알림을 보냅니다. 보도를 검색해서 찾으므로 놓칠 수 있습니다.</p>
       </aside>
     </div>
     <div class="ai-back">
@@ -897,7 +911,10 @@ function renderAI(d) {
   document.getElementById("ai-capex-note").hidden = !ai.capex.length;
 
   /* Step 2: distance to default, reported CDS */
-  document.getElementById("ai-dd-read").textContent = ai.dd_reading;
+  const ddRead = document.getElementById("ai-dd-read");
+  ddRead.textContent = ai.dd_reading;
+  if (ai.dd_reading_cds) ddRead.append(" ", el("span", "judged-inline", ai.dd_reading_cds), " ", el("span", "judge-tag", "AI 정리"));
+  if (ai.news && ai.news.as_of) { const a = new Date(ai.news.as_of + "T00:00:00"); document.getElementById("judge-asof").textContent = ` 마지막 정리: ${a.getMonth() + 1}월 ${a.getDate()}일.`; }
   const low = ai.dd.length ? ai.dd.reduce((a, b) => (b.dd < a.dd ? b : a)) : null;
   const ddBox = document.getElementById("ai-dd");
   ai.dd.forEach(r => {
