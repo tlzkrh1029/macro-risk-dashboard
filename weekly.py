@@ -32,7 +32,6 @@ import requests
 ROOT = Path(__file__).resolve().parent
 UA = {"User-Agent": "Mozilla/5.0"}
 ACM_URL = "https://www.newyorkfed.org/medialibrary/media/research/data_indicators/ACMTermPremium.xls"
-REFRESH_TRIGGERS = {"weekly": "trig_01SAhru9EB33fdc2QQw44Hmy", "ai": "trig_01ABHEceSd7PWQZesNgNh7hz"}  # poke-only scheduled tasks behind each tab's refresh button
 CLOSE_HOUR_ET = 17   # a weekday's close counts from 17:00 New York time; Yahoo serves the unfinished bar before that
 HISTORY_WEEKS = 12   # verdict strip on the page
 SPARK_WEEKS = 13     # weekly points per sparkline
@@ -508,8 +507,7 @@ def build_page(series, rec, day):
     data = dict(rec, spark=spark, history=history, memo=read_memo(friday), scorecard=scorecard(series, friday), ai=ai,
                 regimes=[{"dir": d, "spreading": s, "name": n, "meaning": m} for (d, s), (n, m) in REGIMES.items()],
                 regime_bp=REGIME_BP, week_friday=str(friday.date()),
-                built_at=datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-                refresh=dict(REFRESH_TRIGGERS) if all(REFRESH_TRIGGERS.values()) else None)
+                built_at=datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"))
     template = (ROOT / "page" / "template.html").read_text()
     payload = json.dumps(data, ensure_ascii=False).replace("<", "\\u003c")  # news text from the web must not end the script
     out = ROOT / "page" / "dashboard.html"
