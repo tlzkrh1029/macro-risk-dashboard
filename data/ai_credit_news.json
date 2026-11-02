@@ -1,36 +1,51 @@
 {
- "as_of": "2026-10-31",
+ "as_of": "2026-11-02",
  "note": "Reported 5-year CDS levels and credit events for the AI credit tab. Written weekly by the scheduled task from news; only numbers stated in a linked source.",
  "items": [
   {
    "key": "orcl",
-   "cds_bp": 295,
-   "date": "2026-10-27",
+   "cds_bp": 274.365,
+   "date": "2026-11-02",
    "record_high": false,
-   "source": "CNBC",
-   "url": "https://www.cnbc.com/2026/10/19/oracle-debt-faces-an-ai-stress-test-why-some-investors-arent-worried-.html",
-   "note": "10월 19일 기사의 10월 27일 갱신판입니다. 목요일에 잠깐 300bp까지 올랐다고 적었고, 사상 최고라고 하지는 않았습니다."
+   "source": "Seoul Economic Daily",
+   "url": "https://en.sedaily.com/international/2026/11/02/oracle-credit-risk-eases-on-borrowing-cap-as-microsoft-bond",
+   "note": "10월 28일 값으로, 하루 새 22.2bp 내려 약 9개월 만에 가장 크게 떨어졌다고 적었습니다."
   },
   {
    "key": "avgo",
-   "cds_bp": 136,
-   "date": "2026-10-09",
+   "cds_bp": 175.4,
+   "date": "2026-10-30",
    "record_high": true,
-   "source": "블룸버그 보도 (Gate 인용)",
-   "url": "https://www.gate.com/news/detail/ORCL/oracle-broadcom-cds-spreads-widen-as-ai-debt-hits-500b-in-2026-24838427",
-   "note": "10월 8일과 9일 모두 이 값이었습니다."
+   "source": "Bloomberg (Business Standard 게재)",
+   "url": "https://www.business-standard.com/world-news/credit-swaps-for-tech-companies-reach-records-amid-supply-concerns-126103000211_1.html",
+   "note": "10월 29일 종가로, 하루 새 약 10bp 올라 사상 최고 종가였습니다(ICE Data Services)."
   },
   {
    "key": "nvda",
-   "cds_bp": 101,
-   "date": "2026-10-25",
-   "record_high": true,
-   "source": "Yahoo Finance",
-   "url": "https://finance.yahoo.com/markets/options/articles/why-investors-buying-credit-default-115400301.html",
-   "note": "이달 5년 CDS가 101bp로 사상 최고였다고 적었습니다. 정확한 날짜는 밝히지 않았습니다."
+   "cds_bp": 127,
+   "date": "2026-10-29",
+   "record_high": false,
+   "source": "Gokhshtein Media",
+   "url": "https://gokhshtein.com/news/2026-10-29-nvidias-contagion-problem-215-stock-faces-226-cds-spike-on",
+   "note": "화요일(10월 27일로 보임) 값으로, 2025년 말 39bp에서 226% 올랐다고 적었습니다. 사상 최고라고 하지는 않았습니다."
   }
  ],
  "events": [
+  {
+   "date": "2026-11-02",
+   "text": "오라클이 100억 달러 회사채(6개 트랜치)와 100억 달러 보통주를 함께 발행한다고 밝혔습니다.",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/oracle-stock-falls-20-billion-143630142.html"
+  },
+  {
+   "date": "2026-10-30",
+   "text": "브로드컴 5년 CDS가 10월 29일 175.4bp로 사상 최고 종가를 기록했습니다.",
+   "url": "https://www.business-standard.com/world-news/credit-swaps-for-tech-companies-reach-records-amid-supply-concerns-126103000211_1.html"
+  },
+  {
+   "date": "2026-10-28",
+   "text": "오라클이 2030년 5월 말까지 추가 자본시장 조달을 모두 200억 달러로 묶겠다고 밝힌 뒤 5년 CDS가 22.2bp 내린 274bp가 됐습니다.",
+   "url": "https://en.sedaily.com/international/2026/11/02/oracle-credit-risk-eases-on-borrowing-cap-as-microsoft-bond"
+  },
   {
    "date": "2026-10-25",
    "text": "엔비디아 5년 CDS가 이달 사상 최고인 101bp에 이르렀다는 보도가 나왔습니다.",
