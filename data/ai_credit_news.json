@@ -1,15 +1,15 @@
 {
- "as_of": "2026-11-02",
+ "as_of": "2026-11-03",
  "note": "Reported 5-year CDS levels and credit events for the AI credit tab. Written weekly by the scheduled task from news; only numbers stated in a linked source.",
  "items": [
   {
    "key": "orcl",
-   "cds_bp": 274.365,
+   "cds_bp": 292,
    "date": "2026-11-02",
    "record_high": false,
-   "source": "Seoul Economic Daily",
-   "url": "https://en.sedaily.com/international/2026/11/02/oracle-credit-risk-eases-on-borrowing-cap-as-microsoft-bond",
-   "note": "10월 28일 값으로, 하루 새 22.2bp 내려 약 9개월 만에 가장 크게 떨어졌다고 적었습니다."
+   "source": "CNBC",
+   "url": "https://www.cnbc.com/2026/11/02/oracle-files-to-sell-20-billion-in-new-stock-bonds-to-finance-ai-buildout.html",
+   "note": "11월 2일 값으로, 1년 새 265% 올랐고 S&P 글로벌 마켓 인텔리전스는 투기등급 상단 수준에 가깝다고 적었습니다."
   },
   {
    "key": "avgo",
@@ -31,6 +31,11 @@
   }
  ],
  "events": [
+  {
+   "date": "2026-11-02",
+   "text": "오라클의 200억 달러 조달 발표 뒤 피치는 BBB 등급을 유지했고, 무디스는 등급을 확인하면서 부정적 전망을 유지했습니다.",
+   "url": "https://finance.yahoo.com/markets/article/oracle-stock-slides-as-it-borrows-another-10-billion-for-ai-spending-184518137.html"
+  },
   {
    "date": "2026-11-02",
    "text": "오라클이 100억 달러 회사채(6개 트랜치)와 100억 달러 보통주를 함께 발행한다고 밝혔습니다.",
