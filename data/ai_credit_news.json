@@ -1,5 +1,5 @@
 {
- "as_of": "2026-11-05",
+ "as_of": "2026-11-06",
  "note": "Reported 5-year CDS levels and credit events for the AI credit tab. Written weekly by the scheduled task from news; only numbers stated in a linked source.",
  "items": [
   {
@@ -31,6 +31,11 @@
   }
  ],
  "events": [
+  {
+   "date": "2026-11-06",
+   "text": "CNBC는 엔비디아 CDS가 한 달 새 76%, 브로드컴 CDS가 49% 올랐고 엔비디아 스프레드가 약 139bp(오라클 약 298bp)라고 보도했습니다. 기사에 만기는 적혀 있지 않고 사상 최고라고 하지도 않았습니다.",
+   "url": "https://www.cnbc.com/2026/11/06/coreweave-bond-yield-tops-16percent-as-ai-credit-stress-rises.html"
+  },
   {
    "date": "2026-11-02",
    "text": "오라클의 200억 달러 조달 발표 뒤 피치는 BBB 등급을 유지했고, 무디스는 등급을 확인하면서 부정적 전망을 유지했습니다.",
