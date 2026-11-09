@@ -1,5 +1,5 @@
 {
- "as_of": "2026-11-06",
+ "as_of": "2026-11-09",
  "note": "Reported 5-year CDS levels and credit events for the AI credit tab. Written weekly by the scheduled task from news; only numbers stated in a linked source.",
  "items": [
   {
@@ -31,6 +31,11 @@
   }
  ],
  "events": [
+  {
+   "date": "2026-11-07",
+   "text": "IFR은 오라클 CDS가 약 305bp로 단일 B 등급 지수 바로 안쪽에서 거래되고, 엔비디아 CDS는 더블 B 등급에 가까운 수준이라고 보도했습니다. 기사에 만기는 적혀 있지 않고 사상 최고라고 하지도 않았습니다.",
+   "url": "https://www.ifre.com/topic-codes/2509450/cds-market-flashes-warning-on-ai-ratings-downgrades"
+  },
   {
    "date": "2026-11-06",
    "text": "CNBC는 엔비디아 CDS가 한 달 새 76%, 브로드컴 CDS가 49% 올랐고 엔비디아 스프레드가 약 139bp(오라클 약 298bp)라고 보도했습니다. 기사에 만기는 적혀 있지 않고 사상 최고라고 하지도 않았습니다.",
