@@ -1,15 +1,15 @@
 {
- "as_of": "2026-11-11",
+ "as_of": "2026-11-12",
  "note": "Reported 5-year CDS levels and credit events for the AI credit tab. Written weekly by the scheduled task from news; only numbers stated in a linked source.",
  "items": [
   {
    "key": "orcl",
-   "cds_bp": 292,
-   "date": "2026-11-02",
+   "cds_bp": 305,
+   "date": "2026-11-12",
    "record_high": false,
-   "source": "CNBC",
-   "url": "https://www.cnbc.com/2026/11/02/oracle-files-to-sell-20-billion-in-new-stock-bonds-to-finance-ai-buildout.html",
-   "note": "11월 2일 값으로, 1년 새 265% 올랐고 S&P 글로벌 마켓 인텔리전스는 투기등급 상단 수준에 가깝다고 적었습니다."
+   "source": "Protos",
+   "url": "https://protos.com/nvidias-bad-news-is-even-worse-for-oracle/",
+   "note": "지난주 5년 CDS가 약 305bp로 1년 전 58bp의 5배가 됐다고 적었습니다. 사상 최고라고 하지는 않았습니다."
   },
   {
    "key": "avgo",
@@ -31,6 +31,16 @@
   }
  ],
  "events": [
+  {
+   "date": "2026-11-12",
+   "text": "Protos는 오라클 5년 CDS가 지난주 약 305bp로 1년 전 58bp의 5배였다고 보도했습니다. 사상 최고라고 하지는 않았습니다.",
+   "url": "https://protos.com/nvidias-bad-news-is-even-worse-for-oracle/"
+  },
+  {
+   "date": "2026-11-10",
+   "text": "골드만삭스 자료를 인용한 보도에서 브로드컴 CDS가 186bp로 한 주 새 17.6bp 올랐고 반도체 바스켓 CDS가 처음으로 하이퍼스케일러 바스켓을 넘어섰다고 전했습니다. 기사에 만기는 적혀 있지 않고 사상 최고라고 하지도 않았습니다.",
+   "url": "https://finance.biggo.com/news/03de2c9b-18da-4c16-90d9-01bfe1c52163"
+  },
   {
    "date": "2026-11-07",
    "text": "IFR은 오라클 CDS가 약 305bp로 단일 B 등급 지수 바로 안쪽에서 거래되고, 엔비디아 CDS는 더블 B 등급에 가까운 수준이라고 보도했습니다. 기사에 만기는 적혀 있지 않고 사상 최고라고 하지도 않았습니다.",
