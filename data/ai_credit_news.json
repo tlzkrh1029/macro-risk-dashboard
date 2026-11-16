@@ -1,5 +1,5 @@
 {
- "as_of": "2026-11-13",
+ "as_of": "2026-11-16",
  "note": "Reported 5-year CDS levels and credit events for the AI credit tab. Written weekly by the scheduled task from news; only numbers stated in a linked source.",
  "items": [
   {
@@ -22,15 +22,20 @@
   },
   {
    "key": "nvda",
-   "cds_bp": 127,
-   "date": "2026-10-29",
+   "cds_bp": 144.5,
+   "date": "2026-11-12",
    "record_high": false,
-   "source": "Gokhshtein Media",
-   "url": "https://gokhshtein.com/news/2026-10-29-nvidias-contagion-problem-215-stock-faces-226-cds-spike-on",
-   "note": "화요일(10월 27일로 보임) 값으로, 2025년 말 39bp에서 226% 올랐다고 적었습니다. 사상 최고라고 하지는 않았습니다."
+   "source": "KuCoin News (Bloomberg 인용)",
+   "url": "https://www.kucoin.com/news/flash/nvidia-s-5-year-cds-cost-surges-over-threefold-amid-board-review-of-huang-s-future",
+   "note": "11월 12일 5년 CDS가 144.5bp로 연중반 대비 3배 넘게 올랐고 11월 3일 장중 고점에 다가섰다고 적었습니다. 사상 최고라고 하지는 않았습니다."
   }
  ],
  "events": [
+  {
+   "date": "2026-11-12",
+   "text": "엔비디아 5년 CDS가 11월 12일 144.5bp로 연중반 대비 3배 넘게 올랐다는 보도가 나왔습니다. 11월 3일 장중 고점에 다가섰다고 했고 사상 최고라고 하지는 않았습니다.",
+   "url": "https://www.kucoin.com/news/flash/nvidia-s-5-year-cds-cost-surges-over-threefold-amid-board-review-of-huang-s-future"
+  },
   {
    "date": "2026-11-12",
    "text": "Protos는 오라클 5년 CDS가 지난주 약 305bp로 1년 전 58bp의 5배였다고 보도했습니다. 사상 최고라고 하지는 않았습니다.",
