@@ -1,5 +1,5 @@
 {
- "as_of": "2026-11-20",
+ "as_of": "2026-11-23",
  "note": "Reported 5-year CDS levels and credit events for the AI credit tab. Written weekly by the scheduled task from news; only numbers stated in a linked source.",
  "items": [
   {
@@ -35,6 +35,11 @@
    "date": "2026-11-20",
    "text": "블룸버그는 기술주 급락 속에 오라클 5년 CDS가 장중 최대 4.2bp 오른 327.9bp로 10월 20일 이후 최고를 기록했다고 보도했습니다. 사상 최고라고 하지는 않았습니다.",
    "url": "https://www.bloomberg.com/news/articles/2026-11-20/ai-credit-risk-gauges-worsen-as-tech-selloff-roils-markets"
+  },
+  {
+   "date": "2026-11-18",
+   "text": "야후 파이낸스(Barchart)는 엔비디아 실적 발표일인 11월 17일 오라클 CDS가 사상 최고 수준으로 넓어졌다고 보도했습니다. 그날의 수치와 만기는 적혀 있지 않고, 10월 20일 이후 최고라고 한 블룸버그 11월 20일 보도와 맞지 않습니다.",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/oracle-credit-default-swaps-hit-165226586.html"
   },
   {
    "date": "2026-11-19",
