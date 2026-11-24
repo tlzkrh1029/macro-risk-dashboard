@@ -1,24 +1,24 @@
 {
- "as_of": "2026-11-23",
+ "as_of": "2026-11-24",
  "note": "Reported 5-year CDS levels and credit events for the AI credit tab. Written weekly by the scheduled task from news; only numbers stated in a linked source.",
  "items": [
   {
    "key": "orcl",
-   "cds_bp": 327.9,
-   "date": "2026-11-20",
+   "cds_bp": 355.68,
+   "date": "2026-11-24",
    "record_high": false,
-   "source": "Bloomberg",
-   "url": "https://www.bloomberg.com/news/articles/2026-11-20/ai-credit-risk-gauges-worsen-as-tech-selloff-roils-markets",
-   "note": "금요일 기술주 급락 속에 5년 CDS가 장중 최대 4.2bp 올라 327.9bp로 10월 20일 이후 최고였습니다(ICE Data Services). 사상 최고라고 하지는 않았습니다."
+   "source": "CNBC",
+   "url": "https://www.cnbc.com/2026/11/24/nvidia-jensen-huang-ai-credit-markets.html",
+   "note": "11월 24일 5년 CDS 스프레드가 7% 올라 355.68이 됐다고 보도했습니다. 사상 최고라고 하지는 않았습니다."
   },
   {
    "key": "avgo",
-   "cds_bp": 175.4,
-   "date": "2026-10-30",
-   "record_high": true,
-   "source": "Bloomberg (Business Standard 게재)",
-   "url": "https://www.business-standard.com/world-news/credit-swaps-for-tech-companies-reach-records-amid-supply-concerns-126103000211_1.html",
-   "note": "10월 29일 종가로, 하루 새 약 10bp 올라 사상 최고 종가였습니다(ICE Data Services)."
+   "cds_bp": 179,
+   "date": "2026-11-20",
+   "record_high": false,
+   "source": "Groundbreaker (Bloomberg 자료)",
+   "url": "https://www.groundbrkr.com/p/mark-to-swap-how-the-market-is-mispricing",
+   "note": "11월 17~19일 종가 기준 5년 선순위 CDS가 179bp라고 적었습니다(블룸버그). 사상 최고라고 하지는 않았습니다."
   },
   {
    "key": "nvda",
@@ -31,6 +31,16 @@
   }
  ],
  "events": [
+  {
+   "date": "2026-11-24",
+   "text": "CNBC는 젠슨 황이 23일 CEO로 복귀한 뒤 AI 신용 불안이 이어지며 오라클 5년 CDS가 7% 올라 355.68, 엔비디아 CDS가 3.4% 올랐다고 보도했습니다. 사상 최고라고 하지는 않았습니다.",
+   "url": "https://www.cnbc.com/2026/11/24/nvidia-jensen-huang-ai-credit-markets.html"
+  },
+  {
+   "date": "2026-11-20",
+   "text": "Groundbreaker는 블룸버그 11월 17~19일 종가 기준 5년 선순위 CDS가 엔비디아 129bp, 브로드컴 179bp, 오라클 316bp라고 적었습니다. 사상 최고라고 하지는 않았습니다.",
+   "url": "https://www.groundbrkr.com/p/mark-to-swap-how-the-market-is-mispricing"
+  },
   {
    "date": "2026-11-20",
    "text": "블룸버그는 기술주 급락 속에 오라클 5년 CDS가 장중 최대 4.2bp 오른 327.9bp로 10월 20일 이후 최고를 기록했다고 보도했습니다. 사상 최고라고 하지는 않았습니다.",
