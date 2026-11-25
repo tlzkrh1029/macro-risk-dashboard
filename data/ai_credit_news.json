@@ -1,15 +1,15 @@
 {
- "as_of": "2026-11-24",
+ "as_of": "2026-11-25",
  "note": "Reported 5-year CDS levels and credit events for the AI credit tab. Written weekly by the scheduled task from news; only numbers stated in a linked source.",
  "items": [
   {
    "key": "orcl",
-   "cds_bp": 355.68,
-   "date": "2026-11-24",
-   "record_high": false,
-   "source": "CNBC",
-   "url": "https://www.cnbc.com/2026/11/24/nvidia-jensen-huang-ai-credit-markets.html",
-   "note": "11월 24일 5년 CDS 스프레드가 7% 올라 355.68이 됐다고 보도했습니다. 사상 최고라고 하지는 않았습니다."
+   "cds_bp": 356,
+   "date": "2026-11-25",
+   "record_high": true,
+   "source": "BigGo Finance (S&P Global Market Intelligence 자료)",
+   "url": "https://finance.biggo.com/news/327572f9-1422-43d5-98bb-b93416d5648b",
+   "note": "25일 5년 CDS가 사상 최고인 356bp(3.56%)를 기록했다고 보도했습니다. 1년 전 80bp 아래에서 4배 넘게 올랐다고 적었습니다."
   },
   {
    "key": "avgo",
@@ -31,6 +31,21 @@
   }
  ],
  "events": [
+  {
+   "date": "2026-11-25",
+   "text": "S&P가 젠슨 황의 퇴진과 복귀에 따른 경영·지배구조 우려로 엔비디아 AA 등급을 '부정적 관찰 대상(CreditWatch negative)'에 올렸습니다. 하향은 한 단계(AA-)에 그칠 것으로 본다고 했습니다.",
+   "url": "https://uk.finance.yahoo.com/news/p-global-warns-nvidia-credit-205320758.html"
+  },
+  {
+   "date": "2026-11-25",
+   "text": "BigGo Finance는 S&P Global Market Intelligence 자료를 인용해 오라클 5년 CDS가 사상 최고인 356bp를 기록하고 주가가 약 8% 내렸다고 보도했습니다.",
+   "url": "https://finance.biggo.com/news/327572f9-1422-43d5-98bb-b93416d5648b"
+  },
+  {
+   "date": "2026-11-25",
+   "text": "월스트리트CN(Longbridge)은 수요일 엔비디아, 구글, 오라클, 스페이스X의 CDS가 모두 사상 최고를 새로 썼다고 보도했습니다. 엔비디아의 수치와 만기는 적혀 있지 않습니다.",
+   "url": "https://longbridge.com/en/news/306824689"
+  },
   {
    "date": "2026-11-24",
    "text": "CNBC는 젠슨 황이 23일 CEO로 복귀한 뒤 AI 신용 불안이 이어지며 오라클 5년 CDS가 7% 올라 355.68, 엔비디아 CDS가 3.4% 올랐다고 보도했습니다. 사상 최고라고 하지는 않았습니다.",
