@@ -1,5 +1,5 @@
 {
- "as_of": "2026-11-25",
+ "as_of": "2026-11-26",
  "note": "Reported 5-year CDS levels and credit events for the AI credit tab. Written weekly by the scheduled task from news; only numbers stated in a linked source.",
  "items": [
   {
@@ -22,15 +22,20 @@
   },
   {
    "key": "nvda",
-   "cds_bp": 121,
-   "date": "2026-11-19",
-   "record_high": false,
-   "source": "Longbridge",
-   "url": "https://longbridge.com/en/news/306033600",
-   "note": "수요일 늦게 5년 CDS가 121bp로 일주일 전보다 약 20bp 낮게 호가됐다고 적었습니다. 황 CEO 퇴진 뒤 내려왔다고 했고 사상 최고라고 하지는 않았습니다."
+   "cds_bp": 147.27,
+   "date": "2026-11-25",
+   "record_high": true,
+   "source": "Longbridge (ICE Data Services 자료)",
+   "url": "https://longbridge.com/en/news/306832465",
+   "note": "수요일 5년 CDS가 6bp 넓어진 147.27bp로 장중 사상 최고를 기록했다고 적었습니다(ICE Data Services)."
   }
  ],
  "events": [
+  {
+   "date": "2026-11-25",
+   "text": "Longbridge는 ICE Data Services 자료를 인용해 엔비디아 5년 CDS가 수요일 6bp 넓어진 147.27bp로 장중 사상 최고를 기록했다고 보도했습니다.",
+   "url": "https://longbridge.com/en/news/306832465"
+  },
   {
    "date": "2026-11-25",
    "text": "S&P가 젠슨 황의 퇴진과 복귀에 따른 경영·지배구조 우려로 엔비디아 AA 등급을 '부정적 관찰 대상(CreditWatch negative)'에 올렸습니다. 하향은 한 단계(AA-)에 그칠 것으로 본다고 했습니다.",
