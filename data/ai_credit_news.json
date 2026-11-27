@@ -1,5 +1,5 @@
 {
- "as_of": "2026-11-26",
+ "as_of": "2026-11-27",
  "note": "Reported 5-year CDS levels and credit events for the AI credit tab. Written weekly by the scheduled task from news; only numbers stated in a linked source.",
  "items": [
   {
@@ -45,6 +45,11 @@
    "date": "2026-11-25",
    "text": "BigGo Finance는 S&P Global Market Intelligence 자료를 인용해 오라클 5년 CDS가 사상 최고인 356bp를 기록하고 주가가 약 8% 내렸다고 보도했습니다.",
    "url": "https://finance.biggo.com/news/327572f9-1422-43d5-98bb-b93416d5648b"
+  },
+  {
+   "date": "2026-11-25",
+   "text": "BigGo Finance는 오라클 5년물 채권 CDS가 11월 24일 360bp까지 치솟았다고 보도했습니다. 사상 최고라고 하지는 않았고, 같은 매체가 25일 사상 최고라고 한 356bp와 수치가 다릅니다.",
+   "url": "https://finance.biggo.com/news/d53acd4e-f12e-440e-aa33-7c326ba80fc7"
   },
   {
    "date": "2026-11-25",
